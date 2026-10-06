@@ -1,6 +1,6 @@
 # Products Audit — FE
 
-Фронтенд на Angular 22 (standalone, zoneless, strict, SCSS, Vitest).
+Фронтенд на Angular 22 (standalone, zoneless, strict, SCSS, Karma + Jasmine).
 Усі команди нижче виконуються з папки `FE/`.
 
 ## Оточення
@@ -10,8 +10,14 @@
 ## Команди
 - `npm start` — dev-сервер на http://localhost:4200
 - `npm run build` — production-збірка в `FE/dist/products-audit`
-- `npm test -- --watch=false` — юніт-тести (Vitest)
+- `npm test` — юніт-тести в Chrome у watch-режимі (Karma + Jasmine)
+- `npm run test:ci` — усі тести один раз, headless
+- `npm run test:coverage` — тести + звіт покриття (`coverage/products-audit/`) і пороги з `karma.conf.js`
 - `npx ng generate component features/<feature>/<name>` — новий компонент
+
+## Тести
+Застосунок zoneless (без zone.js): `fakeAsync`/`tick` не працюють — використовуй `async/await` + `fixture.whenStable()`
+і `jasmine.clock()`. Правила — скіл `test-karma-jasmine`.
 
 ## Структура
 - `src/app/core/` — singleton-сервіси, interceptors, guards, layout
