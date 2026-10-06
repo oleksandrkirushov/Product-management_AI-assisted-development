@@ -11,5 +11,8 @@
 
 ## Claude Code
 - Скіли: [.claude/skills/](.claude/skills/) — правила Angular-коду в `angular-best-practices`
-- Агенти: [.claude/agents/](.claude/agents/) — `angular-developer` для фронтенду (працює в `FE/`)
+- Агенти: [.claude/agents/](.claude/agents/)
+  - `angular-developer` — реалізація фіч у фронтенді (`FE/`)
+  - `angular-reviewer` — рев'ю змін у `FE/` за тим самим скілом (код не змінює)
+- Типовий цикл: `angular-developer` реалізує → `angular-reviewer` перевіряє → коміт.
 - Опис архітектури та правила додавання: [.claude/README.md](.claude/README.md)
