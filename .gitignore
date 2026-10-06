@@ -1,0 +1,21 @@
+# Загальні правила для всього репозиторію.
+# Специфічні для частин — у FE/.gitignore (і BE/.gitignore).
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Claude Code — локальні налаштування користувача
+.claude/settings.local.json
+
+# IDEs
+.idea/
+*.swp
+
+# Logs
+*.log

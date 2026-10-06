@@ -1,0 +1,15 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.app-header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #d0d7de;
+}
+
+.app-main {
+  flex: 1;
+  padding: 1.5rem;
+}
