@@ -11,3 +11,16 @@ body {
   color: #1f2328;
   background: #ffffff;
 }
+
+/* Приховує елемент візуально, залишаючи його доступним для скрінрідерів. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}

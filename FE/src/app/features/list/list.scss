@@ -1,0 +1,83 @@
+// Кольори
+$color-inverse-text: #ffffff;
+$color-inverse-bg: #000000;
+$color-border: #d0d7de;
+$color-error: #b42318;
+$color-focus: #0969da;
+
+// Відступи
+$space-sm: 0.75rem;
+$space-md: 1rem;
+$space-lg: 1.5rem;
+
+$radius: 4px;
+
+// Білий текст на чорному фоні — хедер сторінки та кнопки
+@mixin inverse-colors {
+  color: $color-inverse-text;
+  background: $color-inverse-bg;
+}
+
+@mixin reset-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+:host {
+  display: block;
+}
+
+.page-header {
+  @include inverse-colors;
+  padding: $space-md $space-lg;
+
+  &__title {
+    margin: 0;
+    font-size: 1.5rem;
+  }
+}
+
+.page-body {
+  padding: $space-lg;
+}
+
+.product-list {
+  @include reset-list;
+
+  &__item {
+    display: flex;
+    justify-content: space-between;
+    gap: $space-md;
+    padding: $space-sm 0;
+    border-bottom: 1px solid $color-border;
+  }
+
+  &__price {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+}
+
+.state {
+  margin: 0;
+
+  &--error {
+    color: $color-error;
+  }
+}
+
+.retry-button {
+  @include inverse-colors;
+  margin-top: $space-sm;
+  padding: 0.5rem $space-md;
+  font: inherit;
+  border: 1px solid $color-inverse-bg;
+  border-radius: $radius;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 3px solid $color-focus;
+    outline-offset: 2px;
+  }
+}

@@ -67,7 +67,7 @@ description: Сучасні best practices Angular (v20+) — standalone-ком�
 
 ## Чеклист перед завершенням задачі
 - [ ] `npx ng build` проходить без помилок і нових warnings.
-- [ ] Тести для нового/зміненого коду написані й проходять (`npx ng test`).
+- [ ] Тести для нового/зміненого коду написані й проходять (`npm run test:ci`, правила — скіл `test-karma-jasmine`).
 - [ ] Лінтер чистий (`npx ng lint`, якщо налаштований).
 - [ ] Немає `any`, `*ngIf`/`*ngFor`, `@Input`/`@Output`, constructor injection у новому коді.
 - [ ] Жоден новий компонент не використовує `Eager` (а в Angular < 22 кожен має явний `OnPush`).

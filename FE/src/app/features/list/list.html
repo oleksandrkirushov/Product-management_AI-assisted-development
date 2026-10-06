@@ -1,0 +1,29 @@
+<header class="page-header">
+  <h1 class="page-header__title">Product list</h1>
+</header>
+
+<section class="page-body" aria-labelledby="products-heading">
+  <h2 id="products-heading" class="visually-hidden">Products</h2>
+
+  @if (products.isLoading()) {
+    <p class="state" role="status">Loading products…</p>
+  } @else if (products.error()) {
+    <div role="alert">
+      <p class="state state--error">Failed to load products.</p>
+      <button type="button" class="retry-button" (click)="products.reload()">Retry</button>
+    </div>
+  } @else {
+    @if (items().length > 0) {
+      <ul class="product-list">
+        @for (product of items(); track product.id) {
+          <li class="product-list__item">
+            <span class="product-list__name">{{ product.name }}</span>
+            <span class="product-list__price">{{ product.price | currency: 'USD' }}</span>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="state">No products yet</p>
+    }
+  }
+</section>

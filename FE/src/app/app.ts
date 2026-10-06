@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { environment } from '@env/environment';
 
 @Component({
   selector: 'app-root',
@@ -8,6 +7,4 @@ import { environment } from '@env/environment';
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
-export class App {
-  protected readonly appName = environment.appName;
-}
+export class App {}

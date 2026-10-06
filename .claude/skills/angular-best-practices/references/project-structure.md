@@ -13,17 +13,23 @@ src/app/
 │   ├── ui/
 │   └── pipes/
 └── features/
-    └── products/
-        ├── products.routes.ts
-        ├── data/            # product-api.ts, product-store.ts
-        ├── models/          # product.ts
-        ├── product-list/    # product-list-page.ts/.html/.scss/.spec.ts
-        └── product-card/
+    ├── models/              # моделі даних усіх фіч: product.ts, order.ts
+    ├── services/            # сервіси даних усіх фіч: product-service.ts (+ .spec.ts)
+    │   └── mocks/           # мокові дані для сервісів: mock-products.ts
+    └── list/                # фіча — лише UI
+        ├── list.routes.ts
+        └── list.ts/.html/.scss/.spec.ts
 ```
 
 - Групуй за **фічами (доменом)**, а не за типом (`components/`, `services/`).
 - Фіча не імпортує внутрішні файли іншої фічі. Спільне — переносимо в `shared/` або `core/`.
 - `shared/` не залежить від `features/`.
+- **Моделі** (інтерфейси сутностей і відповідей API) — лише в `features/models/`, по одному файлу на сутність.
+  Імпорт — через alias `@features/models/<name>`.
+- **Сервіси даних** (API-сервіси, стори, сервіси з моками) — лише в `features/services/`, моки — у `features/services/mocks/`.
+  Імпорт — через alias `@features/services/<name>`. Сервіси рівня застосунку (auth, interceptors) — у `core/`.
+- **Папка фічі — лише UI:** компоненти, шаблони, стилі, їхні тести та `*.routes.ts`.
+  Не створюй у фічі `models/`, `services/` чи `data/`.
 
 ## Іменування
 

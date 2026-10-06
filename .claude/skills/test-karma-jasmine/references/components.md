@@ -27,7 +27,7 @@ export class ProductCard {
 ```ts
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ProductCard } from './product-card';
-import { Product } from '../models/product';
+import { Product } from '@features/models/product';
 
 describe('ProductCard', () => {
   const product: Product = { id: 'p1', name: 'Book', price: 10, stock: 3 };

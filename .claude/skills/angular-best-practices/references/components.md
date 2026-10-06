@@ -5,7 +5,7 @@
 ```ts
 import { Component, computed, input, output } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
-import { Product } from '../models/product';
+import { Product } from '@features/models/product';
 
 @Component({
   selector: 'app-product-card',

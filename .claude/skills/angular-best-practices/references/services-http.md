@@ -30,7 +30,7 @@
     return next(token ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }) : req);
   };
   ```
-- Завжди типізуй відповіді: `http.get<User[]>(...)`. Опиши моделі API в окремих файлах (`models/`).
+- Завжди типізуй відповіді: `http.get<User[]>(...)`. Опиши моделі API в окремих файлах у `features/models/`.
 - Компоненти не викликають `HttpClient` напряму — лише через API-сервіси.
 - URL бекенду не хардкодь — бери з `environment` або `InjectionToken`.
 - Обробка помилок: загальна (401, 5xx) — в interceptor; специфічна для екрана — у місці виклику.

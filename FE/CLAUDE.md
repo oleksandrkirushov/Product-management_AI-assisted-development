@@ -23,6 +23,9 @@
 - `src/app/core/` — singleton-сервіси, interceptors, guards, layout
 - `src/app/shared/` — перевикористовувані UI-компоненти, pipes, directives
 - `src/app/features/` — фічі (кожна зі своїми `*.routes.ts`, lazy loading)
+- `src/app/features/models/` — моделі даних усіх фіч (`@features/models/<name>`)
+- `src/app/features/services/` — сервіси даних усіх фіч (`@features/services/<name>`), моки — у `services/mocks/`
+- Папка конкретної фічі (`features/list/`) — лише UI: компоненти, стилі, тести, `*.routes.ts`
 - `src/environments/` — конфігурація оточень
 
 Path aliases (`tsconfig.json`): `@core/*`, `@shared/*`, `@features/*`, `@env/*`.
