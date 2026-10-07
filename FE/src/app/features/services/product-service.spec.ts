@@ -1,68 +1,109 @@
 import { TestBed } from '@angular/core/testing';
-import { Product } from '@features/models/product';
-import { MOCK_PRODUCTS } from './mocks/mock-products';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { environment } from '@env/environment';
+import { Product, CreateProductRequest, UpdateProductRequest } from '@features/models/product';
 import { ProductService } from './product-service';
 
 describe('ProductService', () => {
   let service: ProductService;
+  let httpMock: HttpTestingController;
 
   beforeEach(() => {
-    jasmine.clock().install();
-    jasmine.clock().mockDate();
-    service = TestBed.inject(ProductService);
-  });
-
-  afterEach(() => jasmine.clock().uninstall());
-
-  function collect(): { values: Product[][]; completed: () => boolean } {
-    const values: Product[][] = [];
-    let isCompleted = false;
-    service.getAll().subscribe({
-      next: (value) => values.push(value),
-      complete: () => (isCompleted = true),
+    TestBed.configureTestingModule({
+      providers: [ProductService, provideHttpClientTesting()],
     });
-    return { values, completed: () => isCompleted };
-  }
-
-  it('should not emit before the 500ms simulated latency elapses', () => {
-    const result = collect();
-
-    jasmine.clock().tick(499);
-
-    expect(result.values).toEqual([]);
-    expect(result.completed()).toBeFalse();
+    service = TestBed.inject(ProductService);
+    httpMock = TestBed.inject(HttpTestingController);
   });
 
-  it('should emit all mock products once after 500ms and complete', () => {
-    const result = collect();
+  afterEach(() => httpMock.verify());
 
-    jasmine.clock().tick(500);
+  describe('getAll', () => {
+    it('should fetch all products from the API', () => {
+      const mockProducts: Product[] = [
+        { id: '1', name: 'Product 1', price: 10, createdAtUtc: '2024-01-01T00:00:00Z' },
+        { id: '2', name: 'Product 2', price: 20, createdAtUtc: '2024-01-02T00:00:00Z' },
+      ];
 
-    expect(result.values.length).toBe(1);
-    expect(result.values[0]).toEqual([...MOCK_PRODUCTS]);
-    expect(result.completed()).toBeTrue();
+      service.getAll().subscribe((products) => {
+        expect(products).toEqual(mockProducts);
+      });
+
+      const req = httpMock.expectOne(`${environment.apiUrl}/products`);
+      expect(req.request.method).toBe('GET');
+      req.flush(mockProducts);
+    });
+
+    it('should return empty array when no products exist', () => {
+      service.getAll().subscribe((products) => {
+        expect(products).toEqual([]);
+      });
+
+      const req = httpMock.expectOne(`${environment.apiUrl}/products`);
+      req.flush([]);
+    });
   });
 
-  it('should return copies so that mutating the result does not affect the mock data', () => {
-    const originalName = MOCK_PRODUCTS[0].name;
-    const result = collect();
-    jasmine.clock().tick(500);
+  describe('getById', () => {
+    it('should fetch a single product by ID', () => {
+      const productId = '1';
+      const mockProduct: Product = {
+        id: productId,
+        name: 'Test Product',
+        price: 15,
+        createdAtUtc: '2024-01-01T00:00:00Z',
+      };
 
-    const [first] = result.values[0];
-    first.name = 'Mutated';
-    result.values[0].pop();
+      service.getById(productId).subscribe((product) => {
+        expect(product).toEqual(mockProduct);
+      });
 
-    expect(first).not.toBe(MOCK_PRODUCTS[0]);
-    expect(MOCK_PRODUCTS[0].name).toBe(originalName);
-    expect(MOCK_PRODUCTS.length).toBe(6);
+      const req = httpMock.expectOne(`${environment.apiUrl}/products/${productId}`);
+      expect(req.request.method).toBe('GET');
+      req.flush(mockProduct);
+    });
   });
 
-  it('should return fresh copies on every call', () => {
-    const firstCall = collect();
-    const secondCall = collect();
-    jasmine.clock().tick(500);
+  describe('create', () => {
+    it('should create a new product', () => {
+      const createRequest: CreateProductRequest = { name: 'New Product', price: 25 };
+      const mockResponse: Product = {
+        id: '3',
+        name: 'New Product',
+        price: 25,
+        createdAtUtc: '2024-01-03T00:00:00Z',
+      };
 
-    expect(firstCall.values[0]).toEqual(secondCall.values[0]);
-    expect(firstCall.values[0][0]).not.toBe(secondCall.values[0][0]);
+      service.create(createRequest).subscribe((product) => {
+        expect(product).toEqual(mockResponse);
+      });
+
+      const req = httpMock.expectOne(`${environment.apiUrl}/products`);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual(createRequest);
+      req.flush(mockResponse);
+    });
+  });
+
+  describe('update', () => {
+    it('should update an existing product', () => {
+      const productId = '1';
+      const updateRequest: UpdateProductRequest = { name: 'Updated', price: 30 };
+      const mockResponse: Product = {
+        id: productId,
+        name: 'Updated',
+        price: 30,
+        createdAtUtc: '2024-01-01T00:00:00Z',
+      };
+
+      service.update(productId, updateRequest).subscribe((product) => {
+        expect(product).toEqual(mockResponse);
+      });
+
+      const req = httpMock.expectOne(`${environment.apiUrl}/products/${productId}`);
+      expect(req.request.method).toBe('PUT');
+      expect(req.request.body).toEqual(updateRequest);
+      req.flush(mockResponse);
+    });
   });
 });

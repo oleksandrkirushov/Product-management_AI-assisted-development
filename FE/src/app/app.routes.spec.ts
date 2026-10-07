@@ -5,14 +5,21 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { of } from 'rxjs';
 import { routes } from './app.routes';
 import { ProductService } from '@features/services/product-service';
+import { AuthService } from '@features/services/auth-service';
 import { List } from './features/list/list';
 
 describe('app routes', () => {
   beforeEach(() => {
     const productService = jasmine.createSpyObj<ProductService>('ProductService', ['getAll']);
     productService.getAll.and.returnValue(of([]));
+    const authService = jasmine.createSpyObj<AuthService>('AuthService', ['isAuthenticated']);
+    authService.isAuthenticated.and.returnValue(true);
     TestBed.configureTestingModule({
-      providers: [provideRouter(routes), { provide: ProductService, useValue: productService }],
+      providers: [
+        provideRouter(routes),
+        { provide: ProductService, useValue: productService },
+        { provide: AuthService, useValue: authService },
+      ],
     });
   });
 

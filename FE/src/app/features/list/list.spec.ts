@@ -7,8 +7,8 @@ import { Product } from '@features/models/product';
 
 describe('List', () => {
   const products: Product[] = [
-    { id: 'p-1', name: 'Wireless Mouse', price: 24.99 },
-    { id: 'p-2', name: '4K Monitor', price: 329 },
+    { id: 'p-1', name: 'Wireless Mouse', price: 24.99, createdAtUtc: '2026-10-07T00:00:00Z' },
+    { id: 'p-2', name: '4K Monitor', price: 329, createdAtUtc: '2026-10-06T00:00:00Z' },
   ];
 
   let productService: jasmine.SpyObj<ProductService>;
