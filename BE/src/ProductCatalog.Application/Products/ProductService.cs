@@ -45,6 +45,11 @@ public sealed class ProductService(
         return Map(product);
     }
 
+    public async Task<IReadOnlyList<ProductDto>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        var products = await repository.GetAllAsync(cancellationToken);
+        return products.Select(Map).ToList();
+    }
 
     private static ProductDto Map(Product product) => new(product.Id, product.Name, product.Price, product.CreatedAtUtc);
 }

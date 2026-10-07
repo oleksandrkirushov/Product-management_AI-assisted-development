@@ -12,6 +12,9 @@ internal sealed class ProductRepository(AppDbContext dbContext) : IProductReposi
     public Task<Product?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
         dbContext.Products.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
 
+    public async Task<IReadOnlyList<Product>> GetAllAsync(CancellationToken cancellationToken = default) =>
+        await dbContext.Products.AsNoTracking().ToListAsync(cancellationToken);
+
     public void Update(Product product) =>
         dbContext.Products.Update(product);
 

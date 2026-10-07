@@ -23,6 +23,15 @@ public sealed class ProductsController(ProductService productService) : Controll
         return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
     }
 
+    [HttpGet]
+    [ProducesResponseType<IReadOnlyList<ProductDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<IReadOnlyList<ProductDto>>> GetAll(CancellationToken cancellationToken)
+    {
+        var products = await productService.GetAllAsync(cancellationToken);
+        return Ok(products);
+    }
+
     [HttpGet("{id:guid}")]
     [ProducesResponseType<ProductDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
