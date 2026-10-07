@@ -1,0 +1,118 @@
+<header class="page-header">
+  <div class="page-header__left">
+    <button
+      type="button"
+      class="back-button"
+      (click)="goBack()"
+      aria-label="Back to product list"
+    >
+      <svg
+        class="back-button__icon"
+        viewBox="0 0 24 24"
+        width="20"
+        height="20"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </button>
+    <h1 class="page-header__title">Add product</h1>
+  </div>
+</header>
+
+<form
+  [formGroup]="form"
+  (submit)="save(); $event.preventDefault()"
+  aria-label="Add product form"
+>
+  @if (errorMessage()) {
+    <div
+      class="error-banner"
+      role="alert"
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      {{ errorMessage() }}
+    </div>
+  }
+
+  <section class="page-body">
+    <div class="form-group">
+      <label for="name" class="form-label">
+        Name
+        <span class="required-indicator" aria-hidden="true">*</span>
+        <span class="visually-hidden"> (required)</span>
+      </label>
+      <input
+        id="name"
+        type="text"
+        class="form-input"
+        formControlName="name"
+        aria-required="true"
+        [attr.aria-invalid]="nameControl()?.invalid && nameControl()?.touched"
+        [attr.aria-describedby]="
+          nameControl()?.invalid && nameControl()?.touched ? 'name-error' : null
+        "
+      />
+      @if (nameControl()?.touched && nameControl()?.hasError('required')) {
+        <p id="name-error" class="error-message" role="alert">
+          Name is required
+        </p>
+      } @else if (nameControl()?.touched && nameControl()?.hasError('maxlength')) {
+        <p id="name-error" class="error-message" role="alert">
+          Name must be 200 characters or fewer
+        </p>
+      }
+    </div>
+
+    <div class="form-group">
+      <label for="price" class="form-label">
+        Price
+        <span class="required-indicator" aria-hidden="true">*</span>
+        <span class="visually-hidden"> (required)</span>
+      </label>
+      <input
+        id="price"
+        type="number"
+        step="0.01"
+        min="0.01"
+        class="form-input"
+        formControlName="price"
+        aria-required="true"
+        [attr.aria-invalid]="priceControl()?.invalid && priceControl()?.touched"
+        [attr.aria-describedby]="
+          priceControl()?.invalid && priceControl()?.touched ? 'price-error' : null
+        "
+      />
+      @if (priceControl()?.touched && priceControl()?.hasError('required')) {
+        <p id="price-error" class="error-message" role="alert">
+          Price is required
+        </p>
+      } @else if (priceControl()?.touched && priceControl()?.hasError('min')) {
+        <p id="price-error" class="error-message" role="alert">
+          Price must be at least 0.01
+        </p>
+      }
+    </div>
+  </section>
+
+  <footer class="page-footer">
+    <button
+      type="submit"
+      class="save-button"
+      [disabled]="form.pristine || isSaving()"
+      [attr.aria-busy]="isSaving()"
+    >
+      @if (isSaving()) {
+        <span class="button-text">Saving…</span>
+      } @else {
+        <span class="button-text">Save</span>
+      }
+    </button>
+  </footer>
+</form>

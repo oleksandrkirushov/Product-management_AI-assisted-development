@@ -30,11 +30,34 @@ $radius: 4px;
 
 .page-header {
   @include inverse-colors;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   padding: $space-md $space-lg;
 
   &__title {
     margin: 0;
     font-size: 1.5rem;
+  }
+}
+
+.add-button {
+  color: $color-inverse-text;
+  background: transparent;
+  padding: 0.5rem $space-md;
+  font: inherit;
+  text-decoration: none;
+  border: 1px solid $color-inverse-text;
+  border-radius: $radius;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  &:focus-visible {
+    outline: 3px solid $color-focus;
+    outline-offset: 2px;
   }
 }
 

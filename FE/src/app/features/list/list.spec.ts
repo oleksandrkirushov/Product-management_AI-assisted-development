@@ -1,9 +1,15 @@
 import { TestBed } from '@angular/core/testing';
 import { ComponentFixture } from '@angular/core/testing';
+import { Component } from '@angular/core';
+import { provideRouter } from '@angular/router';
+import { RouterTestingHarness } from '@angular/router/testing';
 import { Observable, Subject, of, throwError } from 'rxjs';
 import { ProductService } from '@features/services/product-service';
 import { List } from './list';
 import { Product } from '@features/models/product';
+
+@Component({ template: '' })
+class DummyProductForm {}
 
 describe('List', () => {
   const products: Product[] = [
@@ -36,7 +42,7 @@ describe('List', () => {
     productService = jasmine.createSpyObj<ProductService>('ProductService', ['getAll']);
     TestBed.configureTestingModule({
       imports: [List],
-      providers: [{ provide: ProductService, useValue: productService }],
+      providers: [{ provide: ProductService, useValue: productService }, provideRouter([])],
     });
   });
 
@@ -44,6 +50,36 @@ describe('List', () => {
     const fixture = await render(of([]));
 
     expect(query<HTMLHeadingElement>(fixture, 'h1').textContent?.trim()).toBe('Product list');
+  });
+
+  it('should render an "Add new" link pointing to /products/new', async () => {
+    productService.getAll.and.returnValue(of([]));
+    TestBed.overrideProvider(ProductService, { useValue: productService });
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([
+          {
+            path: 'products',
+            children: [
+              { path: '', component: List },
+              { path: 'new', component: DummyProductForm },
+            ],
+          },
+        ]),
+      ],
+    });
+
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl('/products', List);
+    await harness.fixture.whenStable();
+
+    const link = harness.routeNativeElement?.querySelector<HTMLAnchorElement>('.add-button');
+    if (!link) {
+      throw new Error('Element ".add-button" not found');
+    }
+
+    expect(link.textContent?.trim()).toBe('+ Add new');
+    expect(link.getAttribute('href')).toBe('/products/new');
   });
 
   it('should show a loading status while products are being fetched', () => {
