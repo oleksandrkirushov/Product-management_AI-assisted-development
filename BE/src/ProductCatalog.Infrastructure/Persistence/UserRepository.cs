@@ -18,6 +18,9 @@ internal sealed class UserRepository(AppDbContext dbContext) : IUserRepository
     public Task<User?> FindByEmailAsync(string email, CancellationToken cancellationToken = default) =>
         dbContext.Users.AsNoTracking().SingleOrDefaultAsync(x => x.Email == email, cancellationToken);
 
+    public async Task<IReadOnlyList<User>> GetAllAsync(CancellationToken cancellationToken = default) =>
+        await dbContext.Users.AsNoTracking().ToListAsync(cancellationToken);
+
     public void Update(User user) =>
         dbContext.Users.Update(user);
 }

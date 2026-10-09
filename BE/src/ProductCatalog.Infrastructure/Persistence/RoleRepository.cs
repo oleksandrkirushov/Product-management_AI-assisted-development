@@ -11,4 +11,7 @@ internal sealed class RoleRepository(AppDbContext dbContext) : IRoleRepository
 
     public Task<Role?> FindByNameAsync(string name, CancellationToken cancellationToken = default) =>
         dbContext.Roles.AsNoTracking().SingleOrDefaultAsync(x => x.Name == name, cancellationToken);
+
+    public async Task<IReadOnlyList<Role>> GetAllAsync(CancellationToken cancellationToken = default) =>
+        await dbContext.Roles.AsNoTracking().ToListAsync(cancellationToken);
 }

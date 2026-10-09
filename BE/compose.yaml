@@ -8,7 +8,7 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: Server=sqlserver,1433;Database=ProductCatalogDb;User Id=sa;Password=${SA_PASSWORD:-Your_password123};TrustServerCertificate=True
       Jwt__Key: ${JWT_KEY:-local-development-signing-key-change-me-2026}
-      DemoUser__Password: ${DEMO_USER_PASSWORD:-Admin123!}
+      AdminSeed__Password: ${ADMIN_SEED_PASSWORD:-Admin123!}
     depends_on:
       sqlserver:
         condition: service_healthy

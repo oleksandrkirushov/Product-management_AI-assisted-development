@@ -19,6 +19,9 @@ public sealed class RegisterUserServiceTests
         public Task<User?> FindByEmailAsync(string email, CancellationToken cancellationToken = default) =>
             Task.FromResult(Items.FirstOrDefault(x => x.Email == email));
 
+        public Task<IReadOnlyList<User>> GetAllAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult<IReadOnlyList<User>>(Items);
+
         public Task AddAsync(User user, CancellationToken cancellationToken = default)
         {
             Items.Add(user);
@@ -37,6 +40,9 @@ public sealed class RegisterUserServiceTests
 
         public Task<Role?> FindByNameAsync(string name, CancellationToken cancellationToken = default) =>
             Task.FromResult(Items.FirstOrDefault(x => x.Name == name));
+
+        public Task<IReadOnlyList<Role>> GetAllAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult<IReadOnlyList<Role>>(Items);
     }
 
     private sealed class FakePasswordHasher : IPasswordHasher

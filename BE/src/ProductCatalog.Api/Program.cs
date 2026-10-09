@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using ProductCatalog.Api.Options;
 using ProductCatalog.Application;
+using ProductCatalog.Application.Abstractions;
 using ProductCatalog.Domain.Entities;
 using ProductCatalog.Infrastructure;
 using ProductCatalog.Infrastructure.Persistence;
@@ -81,6 +82,7 @@ static async Task EnsureDatabaseCreatedAsync(WebApplication app)
 {
     await using var scope = app.Services.CreateAsyncScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
     const int maxAttempts = 10;
     for (var attempt = 1; attempt <= maxAttempts; attempt++)
     {
@@ -88,6 +90,7 @@ static async Task EnsureDatabaseCreatedAsync(WebApplication app)
         {
             await dbContext.Database.EnsureCreatedAsync();
             await SeedRolesAsync(dbContext);
+            await SeedAdminUserAsync(dbContext, passwordHasher, app.Configuration);
             return;
         }
         catch when (attempt < maxAttempts)
@@ -106,6 +109,23 @@ static async Task SeedRolesAsync(AppDbContext dbContext)
         new Role("Admin", ["*"]),
         new Role("User", ["products:read"]));
 
+    await dbContext.SaveChangesAsync();
+}
+
+static async Task SeedAdminUserAsync(AppDbContext dbContext, IPasswordHasher passwordHasher, IConfiguration configuration)
+{
+    if (await dbContext.Users.AnyAsync())
+        return;
+
+    var adminRole = await dbContext.Roles.SingleOrDefaultAsync(x => x.Name == "Admin")
+        ?? throw new InvalidOperationException("Admin role must be seeded before seeding the admin user.");
+
+    var username = configuration["AdminSeed:Username"] ?? "admin";
+    var email = configuration["AdminSeed:Email"] ?? "admin@productcatalog.local";
+    var password = configuration["AdminSeed:Password"] ?? "Admin123!";
+
+    var admin = new User(username, email, "System", "Administrator", passwordHasher.Hash(password), adminRole.Id);
+    dbContext.Users.Add(admin);
     await dbContext.SaveChangesAsync();
 }
 
