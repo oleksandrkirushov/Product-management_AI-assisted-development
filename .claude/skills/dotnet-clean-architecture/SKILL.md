@@ -6,7 +6,7 @@ description: Конвенції Clean Architecture цього бекенд-пр�
 # .NET Clean Architecture (цей проєкт)
 
 ## Перед початком роботи
-1. Перевір `BE/ProductCatalog.sln` і структуру `BE/src/` — чотири проєкти-шари + `BE/tests/ProductCatalog.UnitTests`.
+1. Перевір `BE/ProductCatalog.sln` і структуру `BE/src/` — чотири проєкти-шари + `BE/tests/ProductCatalog.UnitTests` і `BE/tests/ProductCatalog.Api.UnitTests`.
 2. Подивись на вже написаний код у відповідному шарі (`Product.cs`, `ProductService.cs`, `ProductsController.cs`, `AppDbContext.cs`) — **нова сутність повторює ці самі паттерни**, це не загальні рекомендації, а те, як конкретно зроблено тут.
 3. Не став нові NuGet-пакети без явного запиту.
 
@@ -20,6 +20,7 @@ Domain  ←  Application  ←  Infrastructure  ←  Api
 - `Infrastructure` → `Application`, `Domain`.
 - `Api` → `Application`, `Infrastructure`.
 - `tests/ProductCatalog.UnitTests` → `Application`, `Domain` (без Infrastructure/Api — юніт-тести логіки, не інтеграційні).
+- `tests/ProductCatalog.Api.UnitTests` → `Api` — юніт-тести Api-компонентів без HTTP/БД (authorization handlers, policy providers, перевірка атрибутів контролерів через reflection).
 - Залежність лише в один бік. Domain і Application нічого не знають про EF Core, HTTP чи Api-контракти.
 
 ## Domain → [references/domain.md](references/domain.md)
@@ -51,12 +52,17 @@ Domain  ←  Application  ←  Infrastructure  ←  Api
 ## Api → [references/api.md](references/api.md)
 - Контролер = primary constructor з Application-сервісом, `[ApiController] [Authorize] [Route("api/...")]`.
 - Кожен action: `[ProducesResponseType<T>(StatusCodes.Status200OK)]` (generic-синтаксис) + окремий атрибут без generic на кожен можливий error-статус.
-- Write-операції додатково `[Authorize(Roles = "Admin")]`.
+- Доступ до захищених дій — **за permission, не за роллю**: `[Authorize(Policy = Permissions.X)]`
+  (константи в `Application/Authorization/Permissions.cs`; перевірку робить `PermissionAuthorizationHandler`
+  за claim `permissions` з wildcard-логікою). Для нових endpoint'ів `Roles = "..."` не використовуй і не змішуй
+  з `Policy` в одному контролері. Старий `[Authorize(Roles = "Admin")]` у `ProductsController` — legacy, поки не мігрований.
 - Request-контракти (`*Request`, `sealed record` з DataAnnotations) — в `Api/Contracts/`. Response повертає DTO з Application напряму — **без** окремого Api-response-типу.
 - `Program.cs` — top-level statements, конфігурація читається і валідується (fail-fast) до `builder.Build()`.
 
 ## Тестування → [references/testing.md](references/testing.md)
-- xUnit у `BE/tests/ProductCatalog.UnitTests`, референс лише на `Application`+`Domain`.
+- xUnit у `BE/tests/ProductCatalog.UnitTests`, референс лише на `Application`+`Domain` — Domain-валідація, Application-сервіси й чиста логіка.
+- Api-компоненти (authorization handlers, policy providers, атрибути контролерів) — у `BE/tests/ProductCatalog.Api.UnitTests` (референс на `Api`), без HTTP-пайплайна і БД. Не додавай посилання на Api в `ProductCatalog.UnitTests`.
+- Один тест-клас на файл.
 - `[Fact]` для одного кейсу, `[Theory]`+`[InlineData]` для набору значень.
 - Юніт-тести на Domain-валідацію й Application-сервіси (з мок-репозиторієм). Інтеграційних тестів і WebApplicationFactory наразі немає.
 
@@ -69,7 +75,7 @@ Domain  ←  Application  ←  Infrastructure  ←  Api
 - [ ] Залежності між шарами не порушені (Domain нічого не імпортує; Application не посилається на Infrastructure/Api).
 - [ ] Нова сутність/сервіс повторює існуючі паттерни (sealed, primary constructors, CancellationToken, guard clauses), а не вигадує нові.
 - [ ] DTO/Commands — в Application, Request-контракти — в Api/Contracts, інтерфейси портів — в Application/Abstractions.
-- [ ] Юніт-тести на нову доменну логіку й Application-сервіс написані (xUnit, `BE/tests/ProductCatalog.UnitTests`).
+- [ ] Юніт-тести на нову доменну логіку й Application-сервіс написані (xUnit, `BE/tests/ProductCatalog.UnitTests`); на нові Api-компоненти без HTTP/БД — у `BE/tests/ProductCatalog.Api.UnitTests`.
 - [ ] `dotnet test` з кореня `BE/` проходить.
 - [ ] Паролі/секрети не хардкодяться — лише через конфігурацію з fallback для локальної розробки.
 - [ ] Якщо diff змінює `Domain/Entities/*.cs` чи `OnModelCreating` в `AppDbContext.cs` — у тому ж diff є

@@ -58,7 +58,12 @@ public sealed class ProductsController(ProductService productService) : Controll
 ### Правила контролерів
 
 - `[ApiController] [Authorize] [Route("api/<plural-aggregate>")]` на класі; `[AllowAnonymous]` явно на публічних endpoint (напр. login, register).
-- Write-операції (`POST`/`PUT`/`DELETE`) додатково `[Authorize(Roles = "Admin")]`, якщо дія адмінська.
+- Захищені дії — `[Authorize(Policy = Permissions.X)]` (константи в `Application/Authorization/Permissions.cs`,
+  напр. `Permissions.UsersRead`, `Permissions.UsersManage`), а не `[Authorize(Roles = "Admin")]`: роль у токені
+  може розійтися з її permissions, тож авторизація має перевіряти саме permission. Нову permission-назву додавай
+  константою в `Permissions` (формат `resource:action`); окремо реєструвати політику не треба — її будує
+  `PermissionPolicyProvider` для будь-якої назви з `:`. Не змішуй `Roles` і `Policy` в одному контролері.
+  Приклад вище з `Roles = "Admin"` у `ProductsController` — legacy, поки не мігрований на permissions.
 - `[ProducesResponseType<T>(StatusCodes.Status200OK)]` — **generic**-синтаксис для успішної відповіді; кожен можливий error-статус — окремий `[ProducesResponseType(StatusCodes.StatusXxx)]` без generic.
 - `[HttpGet("{id:guid}")]` — route constraint `:guid`, не просто `{id}`.
 - `Create` → `CreatedAtAction(nameof(GetById), new { id = ... }, dto)` (201 + `Location` header), не просто `Ok()`.
@@ -100,7 +105,7 @@ public sealed class JwtOptions
 ## Program.cs — конвенції цього проєкту
 
 - Top-level statements, мінімум коду поза `builder`/`app`.
-- Порядок: `AddControllers()` → `AddApplication()` → `AddInfrastructure(configuration)` → CORS policy → ручне зчитування і **валідація** `JwtOptions` (fail-fast ще до `builder.Build()`, якщо ключ закороткий) → `AddAuthentication().AddJwtBearer(...)` → `AddAuthorization()` → Swagger (`AddEndpointsApiExplorer`, `AddSwaggerGen` з Bearer security scheme).
+- Порядок: `AddControllers()` → `AddApplication()` → `AddInfrastructure(configuration)` → CORS policy → ручне зчитування і **валідація** `JwtOptions` (fail-fast ще до `builder.Build()`, якщо ключ закороткий) → `AddAuthentication().AddJwtBearer(...)` → `AddAuthorization()` → `AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>()` + `AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>()` → Swagger (`AddEndpointsApiExplorer`, `AddSwaggerGen` з Bearer security scheme).
 - Pipeline: `UseSwagger → UseSwaggerUI → UseCors → UseAuthentication → UseAuthorization → MapControllers`.
 - `/health` endpoint з `AllowAnonymous()`.
 - Локальна функція `ApplyMigrationsAsync` з retry-loop (10 спроб, затримка) викликає `dbContext.Database.MigrateAsync()` перед `RunAsync()` — схема БД керується EF Core migrations, `EnsureCreatedAsync()` не використовується.

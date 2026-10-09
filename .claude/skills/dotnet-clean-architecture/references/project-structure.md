@@ -14,6 +14,9 @@ BE/
 │   │   ├── Abstractions/
 │   │   │   ├── IProductRepository.cs
 │   │   │   └── IUnitOfWork.cs
+│   │   ├── Authorization/              # чиста логіка permission (без ASP.NET)
+│   │   │   ├── PermissionMatcher.cs
+│   │   │   └── Permissions.cs          # константи назв permission (resource:action)
 │   │   └── Products/
 │   │       ├── ProductService.cs
 │   │       ├── ProductDto.cs
@@ -28,6 +31,7 @@ BE/
 │       ├── Program.cs
 │       ├── appsettings.json
 │       ├── appsettings.Development.json
+│       ├── Authorization/              # requirement, handler, policy provider (ASP.NET-специфіка)
 │       ├── Controllers/
 │       │   ├── ProductsController.cs
 │       │   └── AuthController.cs
@@ -38,8 +42,10 @@ BE/
 │       └── Options/
 │           └── JwtOptions.cs
 └── tests/
-    └── ProductCatalog.UnitTests/       # xUnit, → Application, Domain (НЕ Infrastructure/Api)
-        └── ProductTests.cs
+    ├── ProductCatalog.UnitTests/       # xUnit, → Application, Domain (НЕ Infrastructure/Api)
+    │   └── ProductTests.cs
+    └── ProductCatalog.Api.UnitTests/   # xUnit, → Api (Api-компоненти без HTTP/БД)
+        └── PermissionAuthorizationHandlerTests.cs
 ```
 
 ## Залежності між проєктами (один напрямок)
@@ -51,6 +57,7 @@ BE/
 | `Infrastructure` | `Application`, `Domain` | `Microsoft.EntityFrameworkCore.SqlServer`, `Microsoft.Extensions.Configuration.Abstractions` |
 | `Api` | `Application`, `Infrastructure` | `Microsoft.AspNetCore.Authentication.JwtBearer`, `Microsoft.OpenApi`, `Swashbuckle.AspNetCore` |
 | `UnitTests` | `Application`, `Domain` | `xunit`, `xunit.runner.visualstudio`, `Microsoft.NET.Test.Sdk`, `coverlet.collector` |
+| `Api.UnitTests` | `Api` | ті самі, що в `UnitTests` (ті самі версії) |
 
 **Правило:** залежність лише в один бік, по стрілках вище. `Domain` не має права посилатись ні на що. `Application` не бачить EF Core, HTTP, Api-контракти. Якщо тобі в Application чи Domain раптом потрібен тип з Infrastructure/Api — це ознака, що щось спроєктовано неправильно (найчастіше — порт-інтерфейс мав би бути в Application/Abstractions, а не лежати в Infrastructure).
 

@@ -6,6 +6,7 @@ COPY src/ProductCatalog.Application/ProductCatalog.Application.csproj src/Produc
 COPY src/ProductCatalog.Infrastructure/ProductCatalog.Infrastructure.csproj src/ProductCatalog.Infrastructure/
 COPY src/ProductCatalog.Api/ProductCatalog.Api.csproj src/ProductCatalog.Api/
 COPY tests/ProductCatalog.UnitTests/ProductCatalog.UnitTests.csproj tests/ProductCatalog.UnitTests/
+COPY tests/ProductCatalog.Api.UnitTests/ProductCatalog.Api.UnitTests.csproj tests/ProductCatalog.Api.UnitTests/
 RUN dotnet restore ProductCatalog.sln
 COPY . .
 RUN dotnet publish src/ProductCatalog.Api/ProductCatalog.Api.csproj -c Release -o /app/publish --no-restore

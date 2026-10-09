@@ -1,10 +1,20 @@
 # Тестування (xUnit)
 
-## Проєкт тестів
+## Проєкти тестів
 
-`BE/tests/ProductCatalog.UnitTests` — референсить лише `ProductCatalog.Application` і `ProductCatalog.Domain` (НЕ Infrastructure, НЕ Api). Це чисто юніт-тести доменної логіки й Application-сервісів, без БД, без HTTP, без `WebApplicationFactory` — інтеграційних тестів у проєкті зараз немає.
+| Проєкт | ProjectReference | Що тестує |
+|---|---|---|
+| `BE/tests/ProductCatalog.UnitTests` | лише `Application`, `Domain` (НЕ Infrastructure, НЕ Api) | Domain-валідація, Application-сервіси, чиста логіка (напр. `PermissionMatcher`) |
+| `BE/tests/ProductCatalog.Api.UnitTests` | `Api` | Api-компоненти без HTTP і БД: authorization handlers, policy providers, перевірка атрибутів контролерів через reflection (`[Authorize(Policy = ...)]`) |
 
-NuGet: `xunit`, `xunit.runner.visualstudio`, `Microsoft.NET.Test.Sdk`, `coverlet.collector`. У `.csproj` є `<Using Include="Xunit" />` — тому `using Xunit;` в файлах тестів не потрібен.
+- Обидва — чисті юніт-тести: без БД, без HTTP-пайплайна, без `WebApplicationFactory` — інтеграційних тестів у проєкті зараз немає.
+- Не додавай ProjectReference на `Api`/`Infrastructure` у `ProductCatalog.UnitTests`. Якщо логіку з Api треба протестувати і вона не залежить від ASP.NET-типів — краще винести її в Application; якщо залежить (handler, provider, атрибути) — тест іде в `ProductCatalog.Api.UnitTests`.
+- Новий тест-проєкт додається в `ProductCatalog.sln` і його `.csproj` копіюється в `BE/Dockerfile` перед `dotnet restore ProductCatalog.sln` (інакше restore у Docker впаде).
+- Namespace тестів = ім'я проєкту (`ProductCatalog.UnitTests`, `ProductCatalog.Api.UnitTests`). Один тест-клас на файл, файл названо за класом (`XTests.cs`).
+
+NuGet (однакові версії в обох проєктах): `xunit`, `xunit.runner.visualstudio`, `Microsoft.NET.Test.Sdk`, `coverlet.collector`. У `.csproj` є `<Using Include="Xunit" />` — тому `using Xunit;` в файлах тестів не потрібен.
+
+Примітка: у `ProductCatalog.Api.UnitTests` ім'я `Options` конфліктує з namespace `ProductCatalog.Api.Options` — для `Microsoft.Extensions.Options.Options.Create(...)` використовуй alias (`using MsOptions = Microsoft.Extensions.Options.Options;`).
 
 ## Приклад — тест на Domain-валідацію
 

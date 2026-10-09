@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using ProductCatalog.Api.Authorization;
 using ProductCatalog.Api.Contracts;
 using ProductCatalog.Api.Options;
 using ProductCatalog.Application.Auth;
@@ -41,7 +42,7 @@ public sealed class AuthController(
             new Claim(ClaimTypes.Name, authenticatedUser.Username),
             new Claim(ClaimTypes.Email, authenticatedUser.Email),
             new Claim(ClaimTypes.Role, authenticatedUser.RoleName),
-            new Claim("permissions", JsonSerializer.Serialize(authenticatedUser.Permissions))
+            new Claim(PermissionAuthorizationHandler.PermissionsClaimType, JsonSerializer.Serialize(authenticatedUser.Permissions))
         };
         var credentials = new SigningCredentials(
             new SymmetricSecurityKey(Encoding.UTF8.GetBytes(options.Key)), SecurityAlgorithms.HmacSha256);
