@@ -14,11 +14,17 @@ src/app/
 │   └── pipes/
 └── features/
     ├── models/              # моделі даних усіх фіч: product.ts, order.ts
-    ├── services/            # сервіси даних усіх фіч: product-service.ts (+ .spec.ts)
+    ├── services/            # сервіси даних усіх фіч: product.service.ts (+ .spec.ts)
     │   └── mocks/           # мокові дані для сервісів: mock-products.ts
     └── list/                # фіча — лише UI
         ├── list.routes.ts
         └── list.ts/.html/.scss/.spec.ts
+
+features/auth/
+├── login/                   # кожен компонент — у власній папці
+│   └── login.ts/.html/.scss/.spec.ts
+└── register/
+    └── register.ts/.html/.scss/.spec.ts
 ```
 
 - Групуй за **фічами (доменом)**, а не за типом (`components/`, `services/`).
@@ -33,11 +39,18 @@ src/app/
 
 ## Іменування
 
+- **Кожен новий компонент — у власній папці** всередині фічі, названій так само, як сам компонент
+  (`auth/register/register.ts/.html/.scss/.spec.ts`, а не `auth/register.ts` поруч з іншими файлами фічі).
+  Застосовується до нових компонентів; наявні компоненти без власної папки (напр. `auth/login.ts`)
+  переносити не обов'язково, якщо це не попросили окремо.
 - Файли — `kebab-case`. Один компонент / сервіс / директива на файл.
 - Тест — поруч із файлом: `product-card.spec.ts`.
 - Style guide Angular (v20+) рекомендує імена без суфіксів типу: `product-card.ts` з класом `ProductCard`.
   Якщо проєкт уже використовує суфікси (`product-card.component.ts`, `ProductCardComponent`) — тримайся існуючого стилю.
 - Суфікс за роллю, коли він додає сенс: `product-api.ts`, `cart-store.ts`, `auth-guard.ts`, `product-list-page.ts`.
+- **Файли сервісів даних** у `features/services/` — `<назва-сервісу>.service.ts` (+ `.service.spec.ts`), крапка перед
+  суфіксом, а не дефіс: `auth.service.ts`, `product.service.ts`, `user.service.ts`. Клас лишається без зміни суфікса
+  (`AuthService`, `ProductService`), перейменовується лише файл.
 - Префікс селектора — з `angular.json` (`app-` за замовчуванням).
 
 ## Конфігурація

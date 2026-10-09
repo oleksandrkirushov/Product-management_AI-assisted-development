@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { environment } from '@env/environment';
 import { Product, CreateProductRequest, UpdateProductRequest } from '@features/models/product';
-import { ProductService } from './product-service';
+import { ProductService } from './product.service';
 
 describe('ProductService', () => {
   let service: ProductService;

@@ -3,7 +3,7 @@ import { Router, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/ro
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { environment } from '@env/environment';
 import { authGuard } from './auth.guard';
-import { AuthService } from '@features/services/auth-service';
+import { AuthService } from '@features/services/auth.service';
 import { User } from '@features/models/user';
 import { LoginResponse } from '@features/models/auth';
 

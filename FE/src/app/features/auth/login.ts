@@ -1,12 +1,13 @@
 import { Component, DestroyRef, computed, inject, output, signal } from '@angular/core';
 import { ReactiveFormsModule, Validators, NonNullableFormBuilder } from '@angular/forms';
-import { Router } from '@angular/router';
-import { AuthService } from '@features/services/auth-service';
+import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '@features/services/auth.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { getServerErrorMessage } from '@core/utils/http-error';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './login.html',
   styleUrl: './login.scss',
 })
@@ -52,10 +53,10 @@ export class Login {
           this.loginSuccess.emit();
           this.router.navigate(['/products']);
         },
-        error: (error) => {
+        error: (error: unknown) => {
           this.isLoading.set(false);
           this.errorMessage.set(
-            error?.error?.message ?? 'Login failed. Please check your credentials and try again.',
+            getServerErrorMessage(error) ?? 'Login failed. Please check your credentials and try again.',
           );
         },
       });

@@ -39,8 +39,8 @@ FE/src/app/features/
 ├── models/                 # моделі даних усіх фіч
 │   └── product.ts
 ├── services/               # сервіси даних усіх фіч
-│   ├── product-service.ts
-│   ├── product-service.spec.ts
+│   ├── product.service.ts
+│   ├── product.service.spec.ts
 │   └── mocks/              # мокові дані для сервісів
 │       └── mock-products.ts
 └── list/                   # фіча = сторінка/UI: компоненти, шаблони, стилі, *.routes.ts

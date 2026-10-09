@@ -1,0 +1,210 @@
+<div class="register-container">
+  <header class="register-header">
+    <h1 class="register-header__title">Register</h1>
+  </header>
+
+  <section class="register-form-section">
+    @if (errorMessage()) {
+      <div
+        class="error-banner"
+        role="alert"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        {{ errorMessage() }}
+        @if (autoLoginFailed()) {
+          <a class="error-banner__link" routerLink="/login">Go to login</a>
+        }
+      </div>
+    }
+
+    <form
+      [formGroup]="form"
+      (submit)="submit(); $event.preventDefault()"
+      class="register-form"
+      aria-label="Registration form"
+    >
+      <div class="form-group">
+        <label for="username" class="form-label">Username</label>
+        <input
+          id="username"
+          type="text"
+          class="form-input"
+          formControlName="username"
+          autocomplete="username"
+          [attr.aria-invalid]="
+            usernameControl()?.invalid && usernameControl()?.touched
+          "
+          [attr.aria-describedby]="
+            usernameControl()?.invalid && usernameControl()?.touched
+              ? 'username-error'
+              : null
+          "
+        />
+        @if (
+          usernameControl()?.touched && usernameControl()?.hasError('required')
+        ) {
+          <p id="username-error" class="error-message" role="alert">
+            Username is required
+          </p>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="email" class="form-label">Email</label>
+        <input
+          id="email"
+          type="email"
+          class="form-input"
+          formControlName="email"
+          autocomplete="email"
+          [attr.aria-invalid]="emailControl()?.invalid && emailControl()?.touched"
+          [attr.aria-describedby]="
+            emailControl()?.invalid && emailControl()?.touched ? 'email-error' : null
+          "
+        />
+        @if (emailControl()?.touched && emailControl()?.hasError('required')) {
+          <p id="email-error" class="error-message" role="alert">Email is required</p>
+        } @else if (emailControl()?.touched && emailControl()?.hasError('email')) {
+          <p id="email-error" class="error-message" role="alert">
+            Enter a valid email address
+          </p>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="firstName" class="form-label">First name</label>
+        <input
+          id="firstName"
+          type="text"
+          class="form-input"
+          formControlName="firstName"
+          autocomplete="given-name"
+          [attr.aria-invalid]="
+            firstNameControl()?.invalid && firstNameControl()?.touched
+          "
+          [attr.aria-describedby]="
+            firstNameControl()?.invalid && firstNameControl()?.touched
+              ? 'firstName-error'
+              : null
+          "
+        />
+        @if (
+          firstNameControl()?.touched && firstNameControl()?.hasError('required')
+        ) {
+          <p id="firstName-error" class="error-message" role="alert">
+            First name is required
+          </p>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="lastName" class="form-label">Last name</label>
+        <input
+          id="lastName"
+          type="text"
+          class="form-input"
+          formControlName="lastName"
+          autocomplete="family-name"
+          [attr.aria-invalid]="
+            lastNameControl()?.invalid && lastNameControl()?.touched
+          "
+          [attr.aria-describedby]="
+            lastNameControl()?.invalid && lastNameControl()?.touched
+              ? 'lastName-error'
+              : null
+          "
+        />
+        @if (
+          lastNameControl()?.touched && lastNameControl()?.hasError('required')
+        ) {
+          <p id="lastName-error" class="error-message" role="alert">
+            Last name is required
+          </p>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label">Password</label>
+        <input
+          id="password"
+          type="password"
+          class="form-input"
+          formControlName="password"
+          autocomplete="new-password"
+          [attr.aria-invalid]="
+            passwordControl()?.invalid && passwordControl()?.touched
+          "
+          [attr.aria-describedby]="
+            passwordControl()?.invalid && passwordControl()?.touched
+              ? 'password-error'
+              : null
+          "
+        />
+        @if (passwordControl()?.touched && passwordControl()?.hasError('required')) {
+          <p id="password-error" class="error-message" role="alert">
+            Password is required
+          </p>
+        } @else if (
+          passwordControl()?.touched && passwordControl()?.hasError('minlength')
+        ) {
+          <p id="password-error" class="error-message" role="alert">
+            Password must be at least 8 characters long
+          </p>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword" class="form-label">Confirm password</label>
+        <input
+          id="confirmPassword"
+          type="password"
+          class="form-input"
+          formControlName="confirmPassword"
+          autocomplete="new-password"
+          [attr.aria-invalid]="
+            confirmPasswordControl()?.touched &&
+            (confirmPasswordControl()?.invalid || form.hasError('passwordMismatch'))
+          "
+          [attr.aria-describedby]="
+            confirmPasswordControl()?.touched &&
+            (confirmPasswordControl()?.invalid || form.hasError('passwordMismatch'))
+              ? 'confirmPassword-error'
+              : null
+          "
+        />
+        @if (
+          confirmPasswordControl()?.touched &&
+          confirmPasswordControl()?.hasError('required')
+        ) {
+          <p id="confirmPassword-error" class="error-message" role="alert">
+            Please confirm your password
+          </p>
+        } @else if (
+          confirmPasswordControl()?.touched && form.hasError('passwordMismatch')
+        ) {
+          <p id="confirmPassword-error" class="error-message" role="alert">
+            Passwords do not match
+          </p>
+        }
+      </div>
+
+      <button
+        type="submit"
+        class="submit-button"
+        [disabled]="isLoading()"
+        [attr.aria-busy]="isLoading()"
+      >
+        @if (isLoading()) {
+          <span class="button-text">Registering…</span>
+        } @else {
+          <span class="button-text">Register</span>
+        }
+      </button>
+    </form>
+
+    <p class="register-login-link">
+      Already have an account? <a routerLink="/login">Log in</a>
+    </p>
+  </section>
+</div>

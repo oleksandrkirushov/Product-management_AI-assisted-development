@@ -2,7 +2,7 @@ import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { Subject, of, throwError } from 'rxjs';
 import { ProductForm } from './product-form';
-import { ProductService } from '@features/services/product-service';
+import { ProductService } from '@features/services/product.service';
 import { Product } from '@features/models/product';
 
 describe('ProductForm', () => {

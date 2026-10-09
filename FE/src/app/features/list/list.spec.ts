@@ -4,7 +4,7 @@ import { Component } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { Observable, Subject, of, throwError } from 'rxjs';
-import { ProductService } from '@features/services/product-service';
+import { ProductService } from '@features/services/product.service';
 import { List } from './list';
 import { Product } from '@features/models/product';
 

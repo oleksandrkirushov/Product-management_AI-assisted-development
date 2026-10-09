@@ -1,8 +1,8 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { Observable, Subject, of, throwError } from 'rxjs';
 import { Login } from './login';
-import { AuthService } from '@features/services/auth-service';
+import { AuthService } from '@features/services/auth.service';
 import { LoginResponse } from '@features/models/auth';
 
 describe('Login', () => {
@@ -13,7 +13,7 @@ describe('Login', () => {
   };
 
   let authService: jasmine.SpyObj<AuthService>;
-  let router: jasmine.SpyObj<Router>;
+  let router: Router;
   let fixture: ComponentFixture<Login>;
   let el: HTMLElement;
 
@@ -38,15 +38,14 @@ describe('Login', () => {
 
   beforeEach(async () => {
     authService = jasmine.createSpyObj<AuthService>('AuthService', ['login']);
-    router = jasmine.createSpyObj<Router>('Router', ['navigate']);
 
     TestBed.configureTestingModule({
       imports: [Login],
-      providers: [
-        { provide: AuthService, useValue: authService },
-        { provide: Router, useValue: router },
-      ],
+      providers: [provideRouter([]), { provide: AuthService, useValue: authService }],
     });
+
+    router = TestBed.inject(Router);
+    spyOn(router, 'navigate').and.resolveTo(true);
 
     fixture = TestBed.createComponent(Login);
     el = fixture.nativeElement;

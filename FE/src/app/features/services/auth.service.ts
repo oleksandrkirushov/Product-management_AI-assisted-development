@@ -4,7 +4,7 @@ import { Observable, catchError, map, of, switchMap, tap } from 'rxjs';
 import { environment } from '@env/environment';
 import { LoginRequest, LoginResponse } from '@features/models/auth';
 import { RegisterRequest, RegisterResponse, User } from '@features/models/user';
-import { UserService } from '@features/services/user-service';
+import { UserService } from '@features/services/user.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {

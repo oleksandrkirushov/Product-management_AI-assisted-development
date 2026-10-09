@@ -4,8 +4,8 @@ import { Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { of } from 'rxjs';
 import { routes } from './app.routes';
-import { ProductService } from '@features/services/product-service';
-import { AuthService } from '@features/services/auth-service';
+import { ProductService } from '@features/services/product.service';
+import { AuthService } from '@features/services/auth.service';
 import { List } from './features/list/list';
 
 describe('app routes', () => {

@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { environment } from '@env/environment';
-import { AuthService } from './auth-service';
+import { AuthService } from './auth.service';
 import { LoginResponse } from '@features/models/auth';
 import { RegisterRequest, RegisterResponse, User } from '@features/models/user';
 

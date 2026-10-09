@@ -1,7 +1,7 @@
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, Validators, NonNullableFormBuilder } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ProductService } from '@features/services/product-service';
+import { ProductService } from '@features/services/product.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
