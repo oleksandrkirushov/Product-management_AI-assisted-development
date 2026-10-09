@@ -14,6 +14,7 @@
   - `angular-best-practices` — правила Angular-коду
   - `test-karma-jasmine` — юніт-тести на Karma + Jasmine
   - `dotnet-clean-architecture` — конвенції Clean Architecture бекенду (`BE/`)
+  - `git-commit` — правила створення git-коммітів (без AI-приписок)
 - Агенти: [.claude/agents/](.claude/agents/)
   - `angular-developer` — реалізація фіч у фронтенді (`FE/`)
   - `angular-reviewer` — рев'ю змін у `FE/` за тим самим скілом (код не змінює)
