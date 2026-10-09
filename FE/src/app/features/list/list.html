@@ -1,6 +1,6 @@
 <header class="page-header">
   <h1 class="page-header__title">Product list</h1>
-  <a routerLink="new" class="add-button">+ Add new</a>
+  <a *appHasPermission="'products:create'" routerLink="new" class="add-button">+ Add new</a>
 </header>
 
 <section class="page-body" aria-labelledby="products-heading">

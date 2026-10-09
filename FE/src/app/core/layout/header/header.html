@@ -1,0 +1,6 @@
+@if (currentUser(); as user) {
+  <header class="app-header">
+    <span class="app-header__username">{{ user.username }}</span>
+    <button type="button" class="app-header__logout" (click)="logout()">Logout</button>
+  </header>
+}

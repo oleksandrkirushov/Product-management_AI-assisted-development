@@ -12,8 +12,12 @@ describe('app routes', () => {
   beforeEach(() => {
     const productService = jasmine.createSpyObj<ProductService>('ProductService', ['getAll']);
     productService.getAll.and.returnValue(of([]));
-    const authService = jasmine.createSpyObj<AuthService>('AuthService', ['isAuthenticated']);
+    const authService = jasmine.createSpyObj<AuthService>('AuthService', [
+      'isAuthenticated',
+      'hasPermission',
+    ]);
     authService.isAuthenticated.and.returnValue(true);
+    authService.hasPermission.and.returnValue(true);
     TestBed.configureTestingModule({
       providers: [
         provideRouter(routes),

@@ -5,6 +5,7 @@ import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { Observable, Subject, of, throwError } from 'rxjs';
 import { ProductService } from '@features/services/product.service';
+import { AuthService } from '@features/services/auth.service';
 import { List } from './list';
 import { Product } from '@features/models/product';
 
@@ -18,6 +19,7 @@ describe('List', () => {
   ];
 
   let productService: jasmine.SpyObj<ProductService>;
+  let authService: jasmine.SpyObj<AuthService>;
 
   function query<T extends Element>(fixture: ComponentFixture<List>, selector: string): T {
     const element = (fixture.nativeElement as HTMLElement).querySelector<T>(selector);
@@ -40,9 +42,15 @@ describe('List', () => {
 
   beforeEach(() => {
     productService = jasmine.createSpyObj<ProductService>('ProductService', ['getAll']);
+    authService = jasmine.createSpyObj<AuthService>('AuthService', ['hasPermission']);
+    authService.hasPermission.and.returnValue(true);
     TestBed.configureTestingModule({
       imports: [List],
-      providers: [{ provide: ProductService, useValue: productService }, provideRouter([])],
+      providers: [
+        { provide: ProductService, useValue: productService },
+        { provide: AuthService, useValue: authService },
+        provideRouter([]),
+      ],
     });
   });
 
@@ -80,6 +88,14 @@ describe('List', () => {
 
     expect(link.textContent?.trim()).toBe('+ Add new');
     expect(link.getAttribute('href')).toBe('/products/new');
+  });
+
+  it('should hide the "Add new" link when the user lacks the create permission', async () => {
+    authService.hasPermission.and.returnValue(false);
+
+    const fixture = await render(of([]));
+
+    expect(queryAll(fixture, '.add-button').length).toBe(0);
   });
 
   it('should show a loading status while products are being fetched', () => {

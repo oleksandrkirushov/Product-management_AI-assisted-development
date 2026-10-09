@@ -1,12 +1,18 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { AuthService } from '@features/services/auth.service';
 import { App } from './app';
 
 describe('App', () => {
   beforeEach(async () => {
+    const authService = jasmine.createSpyObj<AuthService>('AuthService', ['logout'], {
+      currentUser: signal(null).asReadonly(),
+    });
+
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [provideRouter([])],
+      providers: [provideRouter([]), { provide: AuthService, useValue: authService }],
     }).compileComponents();
   });
 
