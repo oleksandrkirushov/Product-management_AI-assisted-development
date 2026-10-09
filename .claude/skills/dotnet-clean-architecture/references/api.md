@@ -103,7 +103,7 @@ public sealed class JwtOptions
 - Порядок: `AddControllers()` → `AddApplication()` → `AddInfrastructure(configuration)` → CORS policy → ручне зчитування і **валідація** `JwtOptions` (fail-fast ще до `builder.Build()`, якщо ключ закороткий) → `AddAuthentication().AddJwtBearer(...)` → `AddAuthorization()` → Swagger (`AddEndpointsApiExplorer`, `AddSwaggerGen` з Bearer security scheme).
 - Pipeline: `UseSwagger → UseSwaggerUI → UseCors → UseAuthentication → UseAuthorization → MapControllers`.
 - `/health` endpoint з `AllowAnonymous()`.
-- Локальна функція `EnsureDatabaseCreatedAsync` з retry-loop (10 спроб, затримка) викликає `EnsureCreatedAsync()` перед `RunAsync()` — немає EF Core migrations.
+- Локальна функція `ApplyMigrationsAsync` з retry-loop (10 спроб, затримка) викликає `dbContext.Database.MigrateAsync()` перед `RunAsync()` — схема БД керується EF Core migrations, `EnsureCreatedAsync()` не використовується.
 - `public partial class Program;` наприкінці файлу — залишено для майбутньої інтеграції `WebApplicationFactory` в тестах (інтеграційних тестів ще немає).
 - CORS: policy `"AllowFrontend"` → `http://localhost:4200`, `AllowAnyMethod()/AllowAnyHeader()/AllowCredentials()`. Якщо FE отримає інший origin (прод) — додай його через конфігурацію, не хардкодь другий рядок policy.
 

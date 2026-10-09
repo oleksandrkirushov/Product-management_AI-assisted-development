@@ -38,6 +38,15 @@ Domain  ←  Application  ←  Infrastructure  ←  Api
 - `AppDbContext` реалізує `IUnitOfWork` напряму (вже має `SaveChangesAsync`).
 - Fluent API конфігурація в `OnModelCreating`, без окремих `IEntityTypeConfiguration` файлів (поки одна сутність — тримайся існуючого стилю, не вводь нову абстракцію без потреби).
 - Repository-реалізації — `internal sealed class` (деталь реалізації, недоступна за межами Infrastructure); read-методи — `.AsNoTracking()`.
+- **Схема БД — лише через EF Core Migrations, `EnsureCreatedAsync()` не використовується і не повертається.**
+  Будь-яка зміна `Domain`-моделі (нова entity, новий/змінений стовпець, зв'язок, зміна `OnModelCreating`), що
+  впливає на схему БД, **обов'язково** супроводжується новою міграцією в тому ж diff:
+  `dotnet ef migrations add <Name> --project src/ProductCatalog.Infrastructure --startup-project src/ProductCatalog.Api -o Persistence/Migrations`
+  (виконується з `BE/`; `dotnet-ef` встановлений як локальний tool — `dotnet tool run dotnet-ef`, якщо
+  `dotnet ef` недоступний глобально). Ініціалізація схеми при старті — лише `dbContext.Database.MigrateAsync()`
+  (`Program.cs`). Перед завершенням задачі перевір, що нова/змінена міграція застосовується без помилок на вже
+  **існуючій** БД (не лише на щойно створеній) — інакше повторюється інцидент, коли нова модель додана в коді,
+  але ніколи не потрапила в реальну БД.
 
 ## Api → [references/api.md](references/api.md)
 - Контролер = primary constructor з Application-сервісом, `[ApiController] [Authorize] [Route("api/...")]`.
@@ -63,3 +72,6 @@ Domain  ←  Application  ←  Infrastructure  ←  Api
 - [ ] Юніт-тести на нову доменну логіку й Application-сервіс написані (xUnit, `BE/tests/ProductCatalog.UnitTests`).
 - [ ] `dotnet test` з кореня `BE/` проходить.
 - [ ] Паролі/секрети не хардкодяться — лише через конфігурацію з fallback для локальної розробки.
+- [ ] Якщо diff змінює `Domain/Entities/*.cs` чи `OnModelCreating` в `AppDbContext.cs` — у тому ж diff є
+  відповідна EF Core міграція, застосована без помилок до вже існуючої БД (не лише щойно створеної); її
+  відсутність — 🔴/🟡 зауваження при рев'ю залежно від серйозності.

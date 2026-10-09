@@ -68,7 +68,12 @@ dotnet test ProductCatalog.sln
 dotnet run --project src/ProductCatalog.Api
 ```
 
-Локальний профіль слухає адресу з `launchSettings.json`; Swagger відкрийте за адресою, яку виведе консоль. Таблиця `Products` створюється автоматично при старті через `EnsureCreatedAsync` — для production слід використовувати EF Core migrations.
+Локальний профіль слухає адресу з `launchSettings.json`; Swagger відкрийте за адресою, яку виведе консоль. Схема БД (таблиці `Products`, `Roles`, `Users`) застосовується автоматично при старті через EF Core migrations (`dbContext.Database.MigrateAsync()`). Щоб додати нову міграцію після зміни моделі, виконайте з `BE/`:
+
+```bash
+dotnet tool run dotnet-ef migrations add <Name> --project src/ProductCatalog.Infrastructure --startup-project src/ProductCatalog.Api -o Persistence/Migrations
+dotnet tool run dotnet-ef database update --project src/ProductCatalog.Infrastructure --startup-project src/ProductCatalog.Api
+```
 
 ## Azure Data Studio
 

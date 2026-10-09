@@ -75,10 +75,10 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapGet("/health", () => Results.Ok(new { status = "Healthy" })).AllowAnonymous();
-await EnsureDatabaseCreatedAsync(app);
+await ApplyMigrationsAsync(app);
 await app.RunAsync();
 
-static async Task EnsureDatabaseCreatedAsync(WebApplication app)
+static async Task ApplyMigrationsAsync(WebApplication app)
 {
     await using var scope = app.Services.CreateAsyncScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -88,7 +88,7 @@ static async Task EnsureDatabaseCreatedAsync(WebApplication app)
     {
         try
         {
-            await dbContext.Database.EnsureCreatedAsync();
+            await dbContext.Database.MigrateAsync();
             await SeedRolesAsync(dbContext);
             await SeedAdminUserAsync(dbContext, passwordHasher, app.Configuration);
             return;

@@ -25,7 +25,13 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
 ```
 
 - Fluent API конфігурація прямо в `OnModelCreating`, без окремих `IEntityTypeConfiguration<T>` файлів — поки проєкт малий, тримайся цього стилю. Якщо сутностей стане багато (3+), можна запропонувати користувачу винести конфігурації в окремі класи, але не роби це самостійно без згоди.
-- Немає EF Core migrations — БД створюється через `EnsureCreatedAsync()` у `Program.cs` на старті (retry-loop на підключення). Якщо задача вимагає зміни схеми — досить додати нову властивість/сутність і Fluent API конфігурацію; не генеруй `dotnet ef migrations add`, якщо користувач не попросить явно переходити на migrations.
+- Схема БД керується EF Core Migrations (`Persistence/Migrations/`); `Program.cs` на старті викликає
+  `dbContext.Database.MigrateAsync()` (retry-loop на підключення), `EnsureCreatedAsync()` не використовується.
+  Якщо задача вимагає зміни схеми (нова властивість/сутність, Fluent API в `OnModelCreating`) — обов'язково
+  додай нову міграцію в тому ж diff: `dotnet ef migrations add <Name> --project src/ProductCatalog.Infrastructure
+  --startup-project src/ProductCatalog.Api -o Persistence/Migrations` (з `BE/`; `dotnet-ef` — локальний tool,
+  `dotnet tool run dotnet-ef`). Перевір, що міграція застосовується без помилок на вже існуючій БД, а не лише
+  на щойно створеній.
 
 ## Repository — `Persistence/<Aggregate>Repository.cs`
 
