@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using ProductCatalog.Api.Options;
 using ProductCatalog.Application;
+using ProductCatalog.Domain.Entities;
 using ProductCatalog.Infrastructure;
 using ProductCatalog.Infrastructure.Persistence;
 
@@ -86,6 +87,7 @@ static async Task EnsureDatabaseCreatedAsync(WebApplication app)
         try
         {
             await dbContext.Database.EnsureCreatedAsync();
+            await SeedRolesAsync(dbContext);
             return;
         }
         catch when (attempt < maxAttempts)
@@ -93,6 +95,18 @@ static async Task EnsureDatabaseCreatedAsync(WebApplication app)
             await Task.Delay(TimeSpan.FromSeconds(3));
         }
     }
+}
+
+static async Task SeedRolesAsync(AppDbContext dbContext)
+{
+    if (await dbContext.Roles.AnyAsync())
+        return;
+
+    dbContext.Roles.AddRange(
+        new Role("Admin", ["*"]),
+        new Role("User", ["products:read"]));
+
+    await dbContext.SaveChangesAsync();
 }
 
 public partial class Program;
