@@ -46,6 +46,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         user.Property(x => x.LastName).HasMaxLength(100).IsRequired();
         user.Property(x => x.PasswordHash).IsRequired();
         user.Property(x => x.RoleId).IsRequired();
+        user.Property(x => x.IsActive).IsRequired();
         user.Property(x => x.CreatedAtUtc).IsRequired();
         user.Property(x => x.UpdatedAtUtc).IsRequired();
         user.HasIndex(x => x.Username).IsUnique();

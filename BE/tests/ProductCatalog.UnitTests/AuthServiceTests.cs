@@ -22,6 +22,11 @@ public sealed class AuthServiceTests
         public Task<IReadOnlyList<User>> GetAllAsync(CancellationToken cancellationToken = default) =>
             Task.FromResult<IReadOnlyList<User>>(Items);
 
+        public Task<int> CountActiveByRoleIdsAsync(
+            IReadOnlyCollection<Guid> roleIds,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult(Items.Count(x => x.IsActive && roleIds.Contains(x.RoleId)));
+
         public Task AddAsync(User user, CancellationToken cancellationToken = default)
         {
             Items.Add(user);
@@ -29,6 +34,8 @@ public sealed class AuthServiceTests
         }
 
         public void Update(User user) { }
+
+        public void Remove(User user) => Items.Remove(user);
     }
 
     private sealed class InMemoryRoleRepository : IRoleRepository
@@ -92,6 +99,21 @@ public sealed class AuthServiceTests
         var service = new AuthService(userRepository, roleRepository, new FakePasswordHasher());
 
         var result = await service.AuthenticateAsync("unknown", "Secret123");
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task AuthenticateAsync_WithDeactivatedUserAndValidPassword_ReturnsNull()
+    {
+        var role = new Role("User", ["products:read"]);
+        var user = new User("jdoe", "jdoe@example.com", "John", "Doe", "hashed:Secret123", role.Id);
+        user.Deactivate();
+        var userRepository = new InMemoryUserRepository { Items = { user } };
+        var roleRepository = new InMemoryRoleRepository { Items = { role } };
+        var service = new AuthService(userRepository, roleRepository, new FakePasswordHasher());
+
+        var result = await service.AuthenticateAsync("jdoe", "Secret123");
 
         Assert.Null(result);
     }

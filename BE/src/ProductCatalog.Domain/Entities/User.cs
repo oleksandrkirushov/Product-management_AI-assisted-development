@@ -35,6 +35,7 @@ public sealed class User
         LastName = lastName.Trim();
         PasswordHash = passwordHash;
         RoleId = roleId;
+        IsActive = true;
         CreatedAtUtc = DateTime.UtcNow;
         UpdatedAtUtc = CreatedAtUtc;
     }
@@ -46,8 +47,27 @@ public sealed class User
     public string LastName { get; private set; } = string.Empty;
     public string PasswordHash { get; private set; } = string.Empty;
     public Guid RoleId { get; private set; }
+    public bool IsActive { get; private set; }
     public DateTime CreatedAtUtc { get; private set; }
     public DateTime UpdatedAtUtc { get; private set; }
+
+    public void Activate()
+    {
+        if (IsActive)
+            return;
+
+        IsActive = true;
+        UpdatedAtUtc = DateTime.UtcNow;
+    }
+
+    public void Deactivate()
+    {
+        if (!IsActive)
+            return;
+
+        IsActive = false;
+        UpdatedAtUtc = DateTime.UtcNow;
+    }
 
     private static bool IsValidEmail(string email)
     {

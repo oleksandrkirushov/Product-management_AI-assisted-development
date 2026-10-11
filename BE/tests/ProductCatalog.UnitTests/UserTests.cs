@@ -20,6 +20,7 @@ public sealed class UserTests
         Assert.Equal(roleId, user.RoleId);
         Assert.NotEqual(default, user.CreatedAtUtc);
         Assert.Equal(user.CreatedAtUtc, user.UpdatedAtUtc);
+        Assert.True(user.IsActive);
     }
 
     [Theory]
@@ -43,4 +44,52 @@ public sealed class UserTests
     public void Constructor_WithEmptyRoleId_Throws() =>
         Assert.Throws<ArgumentException>(
             () => new User("jdoe", "jdoe@example.com", "John", "Doe", "hash", Guid.Empty));
+
+    [Fact]
+    public void Deactivate_WhenActive_MarksInactiveAndUpdatesTimestamp()
+    {
+        var user = new User("jdoe", "jdoe@example.com", "John", "Doe", "hash", Guid.NewGuid());
+        var updatedBefore = user.UpdatedAtUtc;
+
+        user.Deactivate();
+
+        Assert.False(user.IsActive);
+        Assert.True(user.UpdatedAtUtc >= updatedBefore);
+    }
+
+    [Fact]
+    public void Activate_WhenInactive_MarksActive()
+    {
+        var user = new User("jdoe", "jdoe@example.com", "John", "Doe", "hash", Guid.NewGuid());
+        user.Deactivate();
+
+        user.Activate();
+
+        Assert.True(user.IsActive);
+    }
+
+    [Fact]
+    public void Activate_WhenAlreadyActive_IsNoOpAndKeepsTimestamp()
+    {
+        var user = new User("jdoe", "jdoe@example.com", "John", "Doe", "hash", Guid.NewGuid());
+        var updatedBefore = user.UpdatedAtUtc;
+
+        user.Activate();
+
+        Assert.True(user.IsActive);
+        Assert.Equal(updatedBefore, user.UpdatedAtUtc);
+    }
+
+    [Fact]
+    public void Deactivate_WhenAlreadyInactive_IsNoOpAndKeepsTimestamp()
+    {
+        var user = new User("jdoe", "jdoe@example.com", "John", "Doe", "hash", Guid.NewGuid());
+        user.Deactivate();
+        var updatedBefore = user.UpdatedAtUtc;
+
+        user.Deactivate();
+
+        Assert.False(user.IsActive);
+        Assert.Equal(updatedBefore, user.UpdatedAtUtc);
+    }
 }

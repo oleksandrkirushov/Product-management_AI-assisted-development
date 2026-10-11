@@ -21,6 +21,11 @@ public sealed class AuthService(
         if (!passwordHasher.Verify(password, user.PasswordHash))
             return null;
 
+        // Checked after password verification so a deactivated account takes the same (hashing) path
+        // as a wrong password and is indistinguishable from it by response or timing.
+        if (!user.IsActive)
+            return null;
+
         var role = await roleRepository.FindByIdAsync(user.RoleId, cancellationToken);
         if (role is null)
             return null;

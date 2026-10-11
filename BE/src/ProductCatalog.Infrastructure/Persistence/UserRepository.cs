@@ -21,6 +21,14 @@ internal sealed class UserRepository(AppDbContext dbContext) : IUserRepository
     public async Task<IReadOnlyList<User>> GetAllAsync(CancellationToken cancellationToken = default) =>
         await dbContext.Users.AsNoTracking().ToListAsync(cancellationToken);
 
+    public Task<int> CountActiveByRoleIdsAsync(
+        IReadOnlyCollection<Guid> roleIds,
+        CancellationToken cancellationToken = default) =>
+        dbContext.Users.AsNoTracking().CountAsync(x => x.IsActive && roleIds.Contains(x.RoleId), cancellationToken);
+
     public void Update(User user) =>
         dbContext.Users.Update(user);
+
+    public void Remove(User user) =>
+        dbContext.Users.Remove(user);
 }

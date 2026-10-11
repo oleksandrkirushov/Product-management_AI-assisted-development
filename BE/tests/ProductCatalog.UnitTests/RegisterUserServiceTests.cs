@@ -22,6 +22,11 @@ public sealed class RegisterUserServiceTests
         public Task<IReadOnlyList<User>> GetAllAsync(CancellationToken cancellationToken = default) =>
             Task.FromResult<IReadOnlyList<User>>(Items);
 
+        public Task<int> CountActiveByRoleIdsAsync(
+            IReadOnlyCollection<Guid> roleIds,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult(Items.Count(x => x.IsActive && roleIds.Contains(x.RoleId)));
+
         public Task AddAsync(User user, CancellationToken cancellationToken = default)
         {
             Items.Add(user);
@@ -29,6 +34,8 @@ public sealed class RegisterUserServiceTests
         }
 
         public void Update(User user) { }
+
+        public void Remove(User user) => Items.Remove(user);
     }
 
     private sealed class InMemoryRoleRepository : IRoleRepository
