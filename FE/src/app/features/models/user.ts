@@ -6,6 +6,7 @@ export interface User {
   lastName: string;
   roles: string[];
   permissions: string[];
+  isActive: boolean;
   createdAtUtc: string;
 }
 

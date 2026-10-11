@@ -30,3 +30,12 @@
 
 Path aliases (`tsconfig.json`): `@core/*`, `@shared/*`, `@features/*`, `@env/*`.
 Використовуй їх замість відносних імпортів між цими папками.
+
+## Angular Material
+- Тема — чорно-біла M3 у `src/_material-theme.scss` (`mat.theme()`). У компонентах кольори бери з `var(--mat-sys-*)`, а не hex.
+- `provideAnimations*` не додавай: Material 22 не залежить від `@angular/animations`.
+- Material імпортуй лише в lazy-частинах (`/admin`), щоб він не потрапив в initial bundle. `Header` та інші eager-компоненти його не використовують.
+- Іконки — self-hosted підмножина Material Symbols Outlined у `public/fonts/` лише з тими іконками, що використовуються.
+  Перед використанням нової іконки в `<mat-icon>` додай її ім'я в `icon_names` і заміни woff2 (інструкція — у коментарі
+  в `src/styles.scss`); інакше замість іконки буде текст. `@font-face` має лишатися інлайновим у `src/index.html`
+  (інакше `MatIconRegistry` не розпізнає шрифт при повільному CSS). Шрифти з CDN не підключай.

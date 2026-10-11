@@ -20,4 +20,16 @@ export class UserService {
   getById(id: string): Observable<User> {
     return this.http.get<User>(`${this.apiUrl}/users/${id}`);
   }
+
+  activate(id: string): Observable<void> {
+    return this.http.patch<void>(`${this.apiUrl}/users/${id}/activate`, null);
+  }
+
+  deactivate(id: string): Observable<void> {
+    return this.http.patch<void>(`${this.apiUrl}/users/${id}/deactivate`, null);
+  }
+
+  delete(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/users/${id}`);
+  }
 }

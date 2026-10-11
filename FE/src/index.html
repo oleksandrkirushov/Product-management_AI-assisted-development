@@ -6,6 +6,16 @@
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <!-- Шрифт іконок mat-icon (підмножина). Чому @font-face тут і як додати іконку — див. src/styles.scss. -->
+    <style>
+      @font-face {
+        font-family: 'Material Symbols Outlined';
+        font-style: normal;
+        font-weight: 400;
+        font-display: block;
+        src: url('fonts/material-symbols-outlined-subset.woff2') format('woff2');
+      }
+    </style>
   </head>
   <body>
     <app-root></app-root>

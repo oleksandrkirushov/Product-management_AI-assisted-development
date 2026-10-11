@@ -13,6 +13,7 @@ const user: User = {
   lastName: 'Doe',
   roles: ['user'],
   permissions: [],
+  isActive: true,
   createdAtUtc: '2024-01-01T00:00:00Z',
 };
 

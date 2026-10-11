@@ -31,6 +31,7 @@ describe('AuthService', () => {
     lastName: 'User',
     roles: ['Admin'],
     permissions: ['*'],
+    isActive: true,
     createdAtUtc: '2024-01-01T00:00:00Z',
   };
 
