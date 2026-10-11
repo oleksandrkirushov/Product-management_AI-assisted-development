@@ -10,6 +10,7 @@ public sealed class UserProfileResponse
         string lastName,
         IReadOnlyList<string> roles,
         IReadOnlyList<string> permissions,
+        bool isActive,
         DateTime createdAtUtc)
     {
         Id = id;
@@ -19,6 +20,7 @@ public sealed class UserProfileResponse
         LastName = lastName;
         Roles = roles;
         Permissions = permissions;
+        IsActive = isActive;
         CreatedAtUtc = createdAtUtc;
     }
 
@@ -29,5 +31,6 @@ public sealed class UserProfileResponse
     public string LastName { get; init; }
     public IReadOnlyList<string> Roles { get; init; }
     public IReadOnlyList<string> Permissions { get; init; }
+    public bool IsActive { get; init; }
     public DateTime CreatedAtUtc { get; init; }
 }

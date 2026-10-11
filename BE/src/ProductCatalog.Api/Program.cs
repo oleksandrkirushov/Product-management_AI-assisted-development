@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using ProductCatalog.Api.Authentication;
 using ProductCatalog.Api.Authorization;
 using ProductCatalog.Api.Options;
 using ProductCatalog.Application;
@@ -47,6 +48,20 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         ValidAudience = jwtOptions.Audience,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key)),
         ClockSkew = TimeSpan.FromSeconds(30)
+    };
+    // A JWT is stateless: reject tokens of users deactivated or deleted after the token was issued.
+    options.Events = new JwtBearerEvents
+    {
+        OnTokenValidated = async context =>
+        {
+            var users = context.HttpContext.RequestServices.GetRequiredService<IUserRepository>();
+            var isAllowed = await ActiveUserTokenValidator.IsAllowedAsync(
+                context.Principal,
+                users,
+                context.HttpContext.RequestAborted);
+            if (!isAllowed)
+                context.Fail(ActiveUserTokenValidator.FailureMessage);
+        }
     };
 });
 builder.Services.AddAuthorization();

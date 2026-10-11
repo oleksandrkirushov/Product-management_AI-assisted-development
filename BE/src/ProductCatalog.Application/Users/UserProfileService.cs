@@ -50,5 +50,6 @@ public sealed class UserProfileService(
         user.LastName,
         role is null ? [] : [role.Name],
         role?.Permissions ?? [],
+        user.IsActive,
         user.CreatedAtUtc);
 }

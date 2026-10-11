@@ -68,6 +68,23 @@ public sealed class UserProfileServiceTests
         Assert.Equal("jdoe", result.Username);
         Assert.Equal(["User"], result.Roles);
         Assert.Equal(["products:read"], result.Permissions);
+        Assert.True(result.IsActive);
+    }
+
+    [Fact]
+    public async Task GetByUsernameAsync_WithDeactivatedUser_ReturnsInactiveProfile()
+    {
+        var role = new Role("User", ["products:read"]);
+        var user = new User("jdoe", "jdoe@example.com", "John", "Doe", "hashed", role.Id);
+        user.Deactivate();
+        var userRepository = new InMemoryUserRepository { Items = { user } };
+        var roleRepository = new InMemoryRoleRepository { Items = { role } };
+        var service = new UserProfileService(userRepository, roleRepository);
+
+        var result = await service.GetByUsernameAsync("jdoe");
+
+        Assert.NotNull(result);
+        Assert.False(result!.IsActive);
     }
 
     [Fact]
@@ -96,6 +113,23 @@ public sealed class UserProfileServiceTests
         Assert.NotNull(result);
         Assert.Equal(user.Id, result!.Id);
         Assert.Equal("jdoe", result.Username);
+        Assert.True(result.IsActive);
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_WithDeactivatedUser_ReturnsInactiveProfile()
+    {
+        var role = new Role("User", ["products:read"]);
+        var user = new User("jdoe", "jdoe@example.com", "John", "Doe", "hashed", role.Id);
+        user.Deactivate();
+        var userRepository = new InMemoryUserRepository { Items = { user } };
+        var roleRepository = new InMemoryRoleRepository { Items = { role } };
+        var service = new UserProfileService(userRepository, roleRepository);
+
+        var result = await service.GetByIdAsync(user.Id);
+
+        Assert.NotNull(result);
+        Assert.False(result!.IsActive);
     }
 
     [Fact]
@@ -126,5 +160,23 @@ public sealed class UserProfileServiceTests
         Assert.Equal(2, result.Count);
         Assert.Contains(result, x => x.Username == "admin" && x.Roles.SequenceEqual(["Admin"]));
         Assert.Contains(result, x => x.Username == "jdoe" && x.Roles.SequenceEqual(["User"]));
+    }
+
+    [Fact]
+    public async Task GetAllAsync_ReturnsActiveStateOfEachUser()
+    {
+        var role = new Role("User", ["products:read"]);
+        var active = new User("active", "active@example.com", "Ann", "Active", "hashed", role.Id);
+        var inactive = new User("inactive", "inactive@example.com", "Ian", "Inactive", "hashed", role.Id);
+        inactive.Deactivate();
+        var userRepository = new InMemoryUserRepository { Items = { active, inactive } };
+        var roleRepository = new InMemoryRoleRepository { Items = { role } };
+        var service = new UserProfileService(userRepository, roleRepository);
+
+        var result = await service.GetAllAsync();
+
+        Assert.Equal(2, result.Count);
+        Assert.True(result.Single(x => x.Username == "active").IsActive);
+        Assert.False(result.Single(x => x.Username == "inactive").IsActive);
     }
 }
