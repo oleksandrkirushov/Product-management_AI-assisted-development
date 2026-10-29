@@ -1,0 +1,119 @@
+<h1 class="page-title" tabindex="-1" #heading>Users</h1>
+
+<p class="visually-hidden" role="status" data-testid="users-action-status">{{ actionStatus() }}</p>
+
+@if (users.isLoading()) {
+  <p class="state" role="status" data-testid="users-loading">Loading users…</p>
+} @else if (users.error()) {
+  <div class="state-block" role="alert" data-testid="users-error">
+    <p class="state state--error">Failed to load users.</p>
+    <button matButton="outlined" type="button" (click)="users.reload()">Retry</button>
+  </div>
+} @else if (rows().length === 0) {
+  <p class="state" data-testid="users-empty">No users found.</p>
+} @else {
+  @if (actionError(); as message) {
+    <p class="action-error" role="alert" data-testid="users-action-error">{{ message }}</p>
+  }
+
+  <div class="table-wrapper">
+    <table class="users-table">
+      <caption class="visually-hidden">Users</caption>
+      <thead>
+        <tr>
+          <th scope="col" class="users-table__position">#</th>
+          <th scope="col">Username</th>
+          <th scope="col">Full Name</th>
+          <th scope="col">Email</th>
+          <th scope="col">Role</th>
+          <th scope="col">Permissions</th>
+          <th scope="col" class="users-table__actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of rows(); track row.user.id) {
+          <tr class="users-table__row" [class.users-table__row--inactive]="!row.user.isActive" data-testid="user-row">
+            <td class="users-table__position" data-testid="user-position">{{ row.position }}</td>
+            <th scope="row" class="users-table__username" data-testid="user-username">
+              {{ row.user.username }}
+              @if (row.isSelf) {
+                <span class="badge badge--self">You</span>
+              }
+              @if (!row.user.isActive) {
+                <span class="badge badge--inactive" data-testid="user-inactive">Inactive</span>
+              }
+            </th>
+            <td data-testid="user-full-name">{{ row.fullName }}</td>
+            <td>{{ row.user.email }}</td>
+            <td data-testid="user-roles">{{ row.roles }}</td>
+            <td>
+              @if (row.user.permissions.length > 0) {
+                <ul class="permissions" data-testid="user-permissions">
+                  @for (permission of row.user.permissions; track permission) {
+                    <li class="permissions__item">{{ permission }}</li>
+                  }
+                </ul>
+              } @else {
+                <span class="muted">None</span>
+              }
+            </td>
+            <td class="users-table__actions">
+              @if (row.isSelf) {
+                <button
+                  matIconButton
+                  type="button"
+                  disabled
+                  disabledInteractive
+                  aria-label="Actions unavailable for your own account"
+                  title="You cannot manage your own account here"
+                  data-testid="user-actions"
+                >
+                  <mat-icon aria-hidden="true">more_vert</mat-icon>
+                </button>
+              } @else {
+                <button
+                  matIconButton
+                  type="button"
+                  [matMenuTriggerFor]="actionsMenu"
+                  [matMenuTriggerData]="{ user: row.user }"
+                  disabledInteractive
+                  [disabled]="row.isPending"
+                  [attr.aria-busy]="row.isPending"
+                  [attr.aria-label]="row.actionsLabel"
+                  [attr.data-actions-trigger]="row.user.id"
+                  data-testid="user-actions"
+                >
+                  <mat-icon aria-hidden="true">more_vert</mat-icon>
+                </button>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+<mat-menu #actionsMenu="matMenu" xPosition="before">
+  <!--
+    The matMenuContent context is untyped (Material has no typed context guard), so `user` is `any` here.
+    Only the User object is passed and it goes straight into typed component methods.
+  -->
+  <ng-template matMenuContent let-user="user">
+    @if (user.isActive) {
+      <button mat-menu-item type="button" (click)="deactivate(user)">
+        <mat-icon aria-hidden="true">block</mat-icon>
+        <span>Deactivate</span>
+      </button>
+    } @else {
+      <button mat-menu-item type="button" (click)="activate(user)">
+        <mat-icon aria-hidden="true">check_circle</mat-icon>
+        <span>Activate</span>
+      </button>
+    }
+    <button mat-menu-item type="button" (click)="delete(user)">
+      <mat-icon aria-hidden="true">delete</mat-icon>
+      <span>Delete</span>
+    </button>
+  </ng-template>
+</mat-menu>

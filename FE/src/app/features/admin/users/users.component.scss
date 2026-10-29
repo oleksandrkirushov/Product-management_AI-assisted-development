@@ -1,0 +1,124 @@
+:host {
+  display: block;
+}
+
+.page-title {
+  margin: 0 0 1rem;
+  font: var(--mat-sys-headline-small);
+  color: var(--mat-sys-on-surface);
+
+  // Receives programmatic focus after a delete; no ring unless the browser deems it keyboard focus.
+  &:focus:not(:focus-visible) {
+    outline: none;
+  }
+}
+
+.state {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+
+  &--error {
+    color: var(--mat-sys-error);
+  }
+}
+
+.state-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.action-error {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  color: var(--mat-sys-on-error-container);
+  background: var(--mat-sys-error-container);
+  border-radius: var(--mat-sys-corner-small);
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface);
+
+  th,
+  td {
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+  }
+
+  thead th {
+    font: var(--mat-sys-title-small);
+    color: var(--mat-sys-on-surface-variant);
+    white-space: nowrap;
+  }
+
+  &__username {
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  &__position {
+    width: 1%;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__actions {
+    width: 1%;
+    text-align: center;
+  }
+
+  // Deactivated user: dimmed text (the "Inactive" badge carries the meaning, not the colour).
+  &__row--inactive td,
+  &__row--inactive th {
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.badge {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0 0.5rem;
+  font: var(--mat-sys-label-small);
+  border-radius: var(--mat-sys-corner-small);
+  vertical-align: middle;
+
+  &--self {
+    color: var(--mat-sys-on-secondary-container);
+    background: var(--mat-sys-secondary-container);
+  }
+
+  &--inactive {
+    color: var(--mat-sys-on-surface);
+    border: 1px solid var(--mat-sys-outline);
+  }
+}
+
+.permissions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  &__item {
+    padding: 0.125rem 0.5rem;
+    font: var(--mat-sys-label-medium);
+    color: var(--mat-sys-on-surface-variant);
+    background: var(--mat-sys-surface-container-high);
+    border-radius: var(--mat-sys-corner-small);
+  }
+}
+
+.muted {
+  color: var(--mat-sys-on-surface-variant);
+}
