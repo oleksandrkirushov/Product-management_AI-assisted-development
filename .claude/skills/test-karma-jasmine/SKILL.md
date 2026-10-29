@@ -6,7 +6,7 @@ description: Покриття Angular-коду у FE/ юніт-тестами н
 # Unit-тести: Karma + Jasmine
 
 ## Оточення проєкту
-- Тести лежать поруч із кодом: `product-card.ts` → `product-card.spec.ts`.
+- Тести лежать поруч із кодом: `product-card.component.ts` → `product-card.component.spec.ts`.
 - Раннер: `@angular/build:unit-test` з `runner: "karma"` (див. `FE/angular.json`), конфіг — `FE/karma.conf.js`.
 - Застосунок **zoneless — zone.js не встановлено**. Через це:
   - ❌ `fakeAsync`, `tick`, `flush`, `waitForAsync` **не працюють** (падають з `zone-testing.js is needed`);
@@ -20,7 +20,7 @@ description: Покриття Angular-коду у FE/ юніт-тестами н
 |---|---|
 | Усі тести один раз, headless | `npm run test:ci` |
 | Тести одного файлу / папки | `npm run test:ci -- --include app/features/products` |
-| Фільтр за назвою `describe`/`it` | `npm run test:ci -- --filter "^ProductCard"` |
+| Фільтр за назвою `describe`/`it` | `npm run test:ci -- --filter "^ProductCardComponent"` |
 | Покриття + перевірка порогів | `npm run test:coverage` → звіт `FE/coverage/products-audit/index.html` |
 | Watch-режим у Chrome (для людини) | `npm test` |
 

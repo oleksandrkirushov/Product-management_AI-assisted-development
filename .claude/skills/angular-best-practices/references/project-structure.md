@@ -4,10 +4,11 @@
 
 ```
 src/app/
-├── app.ts / app.html / app.config.ts / app.routes.ts
+├── app.component.ts / app.component.html / app.config.ts / app.routes.ts
 ├── core/                    # singleton-речі на весь застосунок
-│   ├── auth/                #   auth-store.ts, auth-guard.ts, auth-interceptor.ts
-│   ├── http/                #   error-interceptor.ts, api-url.token.ts
+│   ├── guards/              #   auth.guard.ts, admin.guard.ts
+│   ├── interceptors/        #   auth.interceptor.ts
+│   ├── utils/               #   http-error.ts
 │   └── layout/              #   header, footer, shell
 ├── shared/                  # перевикористовувані presentational компоненти, pipes, directives, utils
 │   ├── ui/
@@ -18,13 +19,13 @@ src/app/
     │   └── mocks/           # мокові дані для сервісів: mock-products.ts
     └── list/                # фіча — лише UI
         ├── list.routes.ts
-        └── list.ts/.html/.scss/.spec.ts
+        └── list.component.ts/.html/.scss/.spec.ts
 
 features/auth/
 ├── login/                   # кожен компонент — у власній папці
-│   └── login.ts/.html/.scss/.spec.ts
+│   └── login.component.ts/.html/.scss/.spec.ts
 └── register/
-    └── register.ts/.html/.scss/.spec.ts
+    └── register.component.ts/.html/.scss/.spec.ts
 ```
 
 - Групуй за **фічами (доменом)**, а не за типом (`components/`, `services/`).
@@ -39,15 +40,15 @@ features/auth/
 
 ## Іменування
 
-- **Кожен новий компонент — у власній папці** всередині фічі, названій так само, як сам компонент
-  (`auth/register/register.ts/.html/.scss/.spec.ts`, а не `auth/register.ts` поруч з іншими файлами фічі).
-  Застосовується до нових компонентів; наявні компоненти без власної папки (напр. `auth/login.ts`)
-  переносити не обов'язково, якщо це не попросили окремо.
+- **Кожен компонент — у власній папці** всередині фічі, названій так само, як сам компонент
+  (`auth/register/register.component.ts/.html/.scss/.spec.ts`, а не `auth/register.component.ts` поруч з іншими
+  файлами фічі).
 - Файли — `kebab-case`. Один компонент / сервіс / директива на файл.
-- Тест — поруч із файлом: `product-card.spec.ts`.
-- Style guide Angular (v20+) рекомендує імена без суфіксів типу: `product-card.ts` з класом `ProductCard`.
-  Якщо проєкт уже використовує суфікси (`product-card.component.ts`, `ProductCardComponent`) — тримайся існуючого стилю.
-- Суфікс за роллю, коли він додає сенс: `product-api.ts`, `cart-store.ts`, `auth-guard.ts`, `product-list-page.ts`.
+- Тест — поруч із файлом: `product-card.component.spec.ts`.
+- **Компоненти** (правило проєкту) — файли `<name>.component.ts/.html/.scss/.spec.ts`, клас `<Name>Component`:
+  `product-card.component.ts` → `ProductCardComponent`. `ng generate component` створює саме так
+  (`"type": "component"` у schematics в `angular.json`).
+- Для інших (не компонентів) файлів — суфікс за роллю через крапку: `auth.guard.ts`, `auth.interceptor.ts`, `has-permission.directive.ts`.
 - **Файли сервісів даних** у `features/services/` — `<назва-сервісу>.service.ts` (+ `.service.spec.ts`), крапка перед
   суфіксом, а не дефіс: `auth.service.ts`, `product.service.ts`, `user.service.ts`. Клас лишається без зміни суфікса
   (`AuthService`, `ProductService`), перейменовується лише файл.

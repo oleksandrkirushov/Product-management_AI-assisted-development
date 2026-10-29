@@ -1,11 +1,11 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { Observable, Subject, of, throwError } from 'rxjs';
-import { Login } from './login';
+import { LoginComponent } from './login.component';
 import { AuthService } from '@features/services/auth.service';
 import { LoginResponse } from '@features/models/auth';
 
-describe('Login', () => {
+describe('LoginComponent', () => {
   const mockLoginResponse: LoginResponse = {
     accessToken: 'test-token-123',
     tokenType: 'Bearer',
@@ -14,7 +14,7 @@ describe('Login', () => {
 
   let authService: jasmine.SpyObj<AuthService>;
   let router: Router;
-  let fixture: ComponentFixture<Login>;
+  let fixture: ComponentFixture<LoginComponent>;
   let el: HTMLElement;
 
   function query<T extends Element>(selector: string): T {
@@ -40,14 +40,14 @@ describe('Login', () => {
     authService = jasmine.createSpyObj<AuthService>('AuthService', ['login']);
 
     TestBed.configureTestingModule({
-      imports: [Login],
+      imports: [LoginComponent],
       providers: [provideRouter([]), { provide: AuthService, useValue: authService }],
     });
 
     router = TestBed.inject(Router);
     spyOn(router, 'navigate').and.resolveTo(true);
 
-    fixture = TestBed.createComponent(Login);
+    fixture = TestBed.createComponent(LoginComponent);
     el = fixture.nativeElement;
     fixture.detectChanges();
     await fixture.whenStable();

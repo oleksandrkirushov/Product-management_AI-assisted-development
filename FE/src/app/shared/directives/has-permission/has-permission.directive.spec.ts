@@ -21,12 +21,12 @@ class FakeAuthService {
   imports: [HasPermission],
   template: `<button *appHasPermission="permission()">Action</button>`,
 })
-class TestHost {
+class TestHostComponent {
   readonly permission = signal('products:create');
 }
 
 describe('HasPermission', () => {
-  let fixture: ComponentFixture<TestHost>;
+  let fixture: ComponentFixture<TestHostComponent>;
   let authService: FakeAuthService;
 
   function button(): HTMLButtonElement | null {
@@ -37,11 +37,11 @@ describe('HasPermission', () => {
     authService = new FakeAuthService();
 
     await TestBed.configureTestingModule({
-      imports: [TestHost],
+      imports: [TestHostComponent],
       providers: [{ provide: AuthService, useValue: authService }],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(TestHost);
+    fixture = TestBed.createComponent(TestHostComponent);
     await fixture.whenStable();
   });
 

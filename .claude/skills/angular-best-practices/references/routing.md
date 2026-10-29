@@ -8,13 +8,13 @@ provideRouter(routes, withComponentInputBinding(), withViewTransitions())
 
 // app.routes.ts
 export const routes: Routes = [
-  { path: '', loadComponent: () => import('./features/home/home-page').then(m => m.HomePage), title: 'Головна' },
+  { path: '', loadComponent: () => import('./features/home/home-page/home-page.component').then(m => m.HomePageComponent), title: 'Головна' },
   {
     path: 'admin',
     canMatch: [adminGuard],
     loadChildren: () => import('./features/admin/admin.routes').then(m => m.ADMIN_ROUTES),
   },
-  { path: '**', loadComponent: () => import('./shared/not-found/not-found-page').then(m => m.NotFoundPage) },
+  { path: '**', loadComponent: () => import('./shared/not-found/not-found-page/not-found-page.component').then(m => m.NotFoundPageComponent) },
 ];
 ```
 

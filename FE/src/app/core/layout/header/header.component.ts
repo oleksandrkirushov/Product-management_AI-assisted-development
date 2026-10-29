@@ -5,10 +5,10 @@ import { AuthService } from '@features/services/auth.service';
 @Component({
   imports: [],
   selector: 'app-header',
-  styleUrl: './header.scss',
-  templateUrl: './header.html',
+  styleUrl: './header.component.scss',
+  templateUrl: './header.component.html',
 })
-export class Header {
+export class HeaderComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
 

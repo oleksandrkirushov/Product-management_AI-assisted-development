@@ -2,15 +2,15 @@ import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
-import { AdminLayout } from './admin-layout';
+import { AdminLayoutComponent } from './admin-layout.component';
 
 @Component({ template: '<h1 class="dummy-users">Users page</h1>' })
-class DummyUsersPage {}
+class DummyUsersPageComponent {}
 
 @Component({ template: '<h1 class="dummy-other">Other page</h1>' })
-class DummyOtherPage {}
+class DummyOtherPageComponent {}
 
-describe('AdminLayout', () => {
+describe('AdminLayoutComponent', () => {
   let harness: RouterTestingHarness;
 
   function host(): HTMLElement {
@@ -48,10 +48,10 @@ describe('AdminLayout', () => {
         provideRouter([
           {
             path: 'admin',
-            component: AdminLayout,
+            component: AdminLayoutComponent,
             children: [
-              { path: 'users', component: DummyUsersPage },
-              { path: 'other', component: DummyOtherPage },
+              { path: 'users', component: DummyUsersPageComponent },
+              { path: 'other', component: DummyOtherPageComponent },
             ],
           },
         ]),

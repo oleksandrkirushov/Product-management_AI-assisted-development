@@ -3,7 +3,7 @@
 ## Typed reactive forms
 
 ```ts
-export class SignUpForm {
+export class SignUpFormComponent {
   private readonly fb = inject(NonNullableFormBuilder);
 
   protected readonly form = this.fb.group({

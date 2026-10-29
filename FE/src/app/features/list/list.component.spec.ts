@@ -6,13 +6,13 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { Observable, Subject, of, throwError } from 'rxjs';
 import { ProductService } from '@features/services/product.service';
 import { AuthService } from '@features/services/auth.service';
-import { List } from './list';
+import { ListComponent } from './list.component';
 import { Product } from '@features/models/product';
 
 @Component({ template: '' })
-class DummyProductForm {}
+class DummyProductFormComponent {}
 
-describe('List', () => {
+describe('ListComponent', () => {
   const products: Product[] = [
     { id: 'p-1', name: 'Wireless Mouse', price: 24.99, createdAtUtc: '2026-10-07T00:00:00Z' },
     { id: 'p-2', name: '4K Monitor', price: 329, createdAtUtc: '2026-10-06T00:00:00Z' },
@@ -21,7 +21,7 @@ describe('List', () => {
   let productService: jasmine.SpyObj<ProductService>;
   let authService: jasmine.SpyObj<AuthService>;
 
-  function query<T extends Element>(fixture: ComponentFixture<List>, selector: string): T {
+  function query<T extends Element>(fixture: ComponentFixture<ListComponent>, selector: string): T {
     const element = (fixture.nativeElement as HTMLElement).querySelector<T>(selector);
     if (!element) {
       throw new Error(`Element "${selector}" not found`);
@@ -29,13 +29,13 @@ describe('List', () => {
     return element;
   }
 
-  function queryAll(fixture: ComponentFixture<List>, selector: string): HTMLElement[] {
+  function queryAll(fixture: ComponentFixture<ListComponent>, selector: string): HTMLElement[] {
     return Array.from((fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(selector));
   }
 
-  async function render(response: Observable<Product[]>): Promise<ComponentFixture<List>> {
+  async function render(response: Observable<Product[]>): Promise<ComponentFixture<ListComponent>> {
     productService.getAll.and.returnValue(response);
-    const fixture = TestBed.createComponent(List);
+    const fixture = TestBed.createComponent(ListComponent);
     await fixture.whenStable();
     return fixture;
   }
@@ -45,7 +45,7 @@ describe('List', () => {
     authService = jasmine.createSpyObj<AuthService>('AuthService', ['hasPermission']);
     authService.hasPermission.and.returnValue(true);
     TestBed.configureTestingModule({
-      imports: [List],
+      imports: [ListComponent],
       providers: [
         { provide: ProductService, useValue: productService },
         { provide: AuthService, useValue: authService },
@@ -69,8 +69,8 @@ describe('List', () => {
           {
             path: 'products',
             children: [
-              { path: '', component: List },
-              { path: 'new', component: DummyProductForm },
+              { path: '', component: ListComponent },
+              { path: 'new', component: DummyProductFormComponent },
             ],
           },
         ]),
@@ -78,7 +78,7 @@ describe('List', () => {
     });
 
     const harness = await RouterTestingHarness.create();
-    await harness.navigateByUrl('/products', List);
+    await harness.navigateByUrl('/products', ListComponent);
     await harness.fixture.whenStable();
 
     const link = harness.routeNativeElement?.querySelector<HTMLAnchorElement>('.add-button');
@@ -101,7 +101,7 @@ describe('List', () => {
   it('should show a loading status while products are being fetched', () => {
     const response = new Subject<Product[]>();
     productService.getAll.and.returnValue(response);
-    const fixture = TestBed.createComponent(List);
+    const fixture = TestBed.createComponent(ListComponent);
 
     fixture.detectChanges();
     fixture.detectChanges();
@@ -115,7 +115,7 @@ describe('List', () => {
   it('should replace the loading status with products once they arrive', async () => {
     const response = new Subject<Product[]>();
     productService.getAll.and.returnValue(response);
-    const fixture = TestBed.createComponent(List);
+    const fixture = TestBed.createComponent(ListComponent);
     fixture.detectChanges();
     fixture.detectChanges();
 
@@ -171,7 +171,7 @@ describe('List', () => {
 
   it('should reload products and render them when Retry is clicked after an error', async () => {
     productService.getAll.and.returnValues(throwError(() => new Error('Network down')), of(products));
-    const fixture = TestBed.createComponent(List);
+    const fixture = TestBed.createComponent(ListComponent);
     await fixture.whenStable();
 
     query<HTMLButtonElement>(fixture, '[role="alert"] button').click();
@@ -187,7 +187,7 @@ describe('List', () => {
       throwError(() => new Error('Network down')),
       throwError(() => new Error('Still down')),
     );
-    const fixture = TestBed.createComponent(List);
+    const fixture = TestBed.createComponent(ListComponent);
     await fixture.whenStable();
 
     query<HTMLButtonElement>(fixture, '[role="alert"] button').click();

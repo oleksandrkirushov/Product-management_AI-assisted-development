@@ -15,7 +15,7 @@
     <button type="button" [disabled]="soldOut()" (click)="addToCart.emit(product().id)">Додати в кошик</button>
   `,
 })
-export class ProductCard {
+export class ProductCardComponent {
   readonly product = input.required<Product>();
   readonly addToCart = output<string>();
   protected readonly soldOut = computed(() => this.product().stock === 0);
@@ -26,18 +26,18 @@ export class ProductCard {
 
 ```ts
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ProductCard } from './product-card';
+import { ProductCardComponent } from './product-card.component';
 import { Product } from '@features/models/product';
 
-describe('ProductCard', () => {
+describe('ProductCardComponent', () => {
   const product: Product = { id: 'p1', name: 'Book', price: 10, stock: 3 };
 
-  let fixture: ComponentFixture<ProductCard>;
+  let fixture: ComponentFixture<ProductCardComponent>;
   let el: HTMLElement;
 
   // Фабрика з перевизначеннями — замість дублювання налаштувань у кожному тесті
   async function setup(overrides: Partial<Product> = {}): Promise<void> {
-    fixture = TestBed.createComponent(ProductCard);
+    fixture = TestBed.createComponent(ProductCardComponent);
     fixture.componentRef.setInput('product', { ...product, ...overrides });
     await fixture.whenStable();
     el = fixture.nativeElement;
@@ -51,7 +51,7 @@ describe('ProductCard', () => {
   }
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({ imports: [ProductCard] }).compileComponents();
+    await TestBed.configureTestingModule({ imports: [ProductCardComponent] }).compileComponents();
   });
 
   it('should render name and formatted price', async () => {
@@ -106,14 +106,14 @@ beforeEach(async () => {
     products: signal<Product[]>([book]).asReadonly(),   // властивості-сигнали — третім аргументом
   });
   await TestBed.configureTestingModule({
-    imports: [ProductListPage],
+    imports: [ProductListPageComponent],
     providers: [{ provide: ProductStore, useValue: store }],
   }).compileComponents();
 });
 ```
 
 Якщо дочірні компоненти важкі, їх можна замінити заглушками:
-`TestBed.overrideComponent(ProductListPage, { remove: { imports: [Chart] }, add: { imports: [ChartStub] } })`.
+`TestBed.overrideComponent(ProductListPageComponent, { remove: { imports: [ChartComponent] }, add: { imports: [ChartStubComponent] } })`.
 
 ## Директива — через тестовий host
 
@@ -136,16 +136,16 @@ import { Highlight } from './highlight';
   imports: [Highlight],
   template: `<p [appHighlight]="on()">text</p>`,
 })
-class TestHost {
+class TestHostComponent {
   readonly on = signal(false);
 }
 
 describe('Highlight', () => {
-  let fixture: ComponentFixture<TestHost>;
+  let fixture: ComponentFixture<TestHostComponent>;
   let paragraph: HTMLElement;
 
   beforeEach(async () => {
-    fixture = TestBed.createComponent(TestHost);
+    fixture = TestBed.createComponent(TestHostComponent);
     await fixture.whenStable();
     paragraph = fixture.nativeElement.querySelector('p');
   });

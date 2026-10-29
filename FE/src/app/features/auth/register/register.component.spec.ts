@@ -1,12 +1,12 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { Subject, of, throwError } from 'rxjs';
-import { Register } from './register';
+import { RegisterComponent } from './register.component';
 import { AuthService } from '@features/services/auth.service';
 import { LoginResponse } from '@features/models/auth';
 import { RegisterResponse } from '@features/models/user';
 
-describe('Register', () => {
+describe('RegisterComponent', () => {
   const mockRegisterResponse: RegisterResponse = {
     id: 'user-1',
     username: 'john_doe',
@@ -24,7 +24,7 @@ describe('Register', () => {
 
   let authService: jasmine.SpyObj<AuthService>;
   let router: Router;
-  let fixture: ComponentFixture<Register>;
+  let fixture: ComponentFixture<RegisterComponent>;
   let el: HTMLElement;
 
   function query<T extends Element>(selector: string): T {
@@ -63,14 +63,14 @@ describe('Register', () => {
     ]);
 
     TestBed.configureTestingModule({
-      imports: [Register],
+      imports: [RegisterComponent],
       providers: [provideRouter([]), { provide: AuthService, useValue: authService }],
     });
 
     router = TestBed.inject(Router);
     spyOn(router, 'navigate').and.resolveTo(true);
 
-    fixture = TestBed.createComponent(Register);
+    fixture = TestBed.createComponent(RegisterComponent);
     el = fixture.nativeElement;
     fixture.detectChanges();
     await fixture.whenStable();

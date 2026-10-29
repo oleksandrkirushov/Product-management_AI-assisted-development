@@ -1,11 +1,11 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { Subject, of, throwError } from 'rxjs';
-import { ProductForm } from './product-form';
+import { ProductFormComponent } from './product-form.component';
 import { ProductService } from '@features/services/product.service';
 import { Product } from '@features/models/product';
 
-describe('ProductForm', () => {
+describe('ProductFormComponent', () => {
   const mockProduct: Product = {
     id: 'p-1',
     name: 'Wireless Mouse',
@@ -15,7 +15,7 @@ describe('ProductForm', () => {
 
   let productService: jasmine.SpyObj<ProductService>;
   let router: jasmine.SpyObj<Router>;
-  let fixture: ComponentFixture<ProductForm>;
+  let fixture: ComponentFixture<ProductFormComponent>;
   let el: HTMLElement;
 
   function query<T extends Element>(selector: string): T {
@@ -42,14 +42,14 @@ describe('ProductForm', () => {
     router = jasmine.createSpyObj<Router>('Router', ['navigate']);
 
     TestBed.configureTestingModule({
-      imports: [ProductForm],
+      imports: [ProductFormComponent],
       providers: [
         { provide: ProductService, useValue: productService },
         { provide: Router, useValue: router },
       ],
     });
 
-    fixture = TestBed.createComponent(ProductForm);
+    fixture = TestBed.createComponent(ProductFormComponent);
     el = fixture.nativeElement;
     fixture.detectChanges();
     await fixture.whenStable();

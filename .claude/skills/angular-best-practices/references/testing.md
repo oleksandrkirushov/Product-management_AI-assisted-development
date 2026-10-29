@@ -11,12 +11,12 @@
 ## Тест компонента
 
 ```ts
-describe('ProductCard', () => {
-  let fixture: ComponentFixture<ProductCard>;
+describe('ProductCardComponent', () => {
+  let fixture: ComponentFixture<ProductCardComponent>;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({ imports: [ProductCard] }).compileComponents();
-    fixture = TestBed.createComponent(ProductCard);
+    await TestBed.configureTestingModule({ imports: [ProductCardComponent] }).compileComponents();
+    fixture = TestBed.createComponent(ProductCardComponent);
     fixture.componentRef.setInput('product', { id: '1', name: 'Book', price: 10, stock: 0 });
     await fixture.whenStable();
   });

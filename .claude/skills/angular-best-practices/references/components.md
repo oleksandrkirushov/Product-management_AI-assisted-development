@@ -22,7 +22,7 @@ import { Product } from '@features/models/product';
     </button>
   `,
 })
-export class ProductCard {
+export class ProductCardComponent {
   readonly product = input.required<Product>();
   readonly addToCart = output<string>();
 

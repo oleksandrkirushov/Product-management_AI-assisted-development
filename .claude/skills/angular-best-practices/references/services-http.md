@@ -4,7 +4,7 @@
 
 - `inject()` замість ін'єкції через конструктор:
   ```ts
-  export class UserPage {
+  export class UserPageComponent {
     private readonly userApi = inject(UserApi);
     private readonly router = inject(Router);
   }

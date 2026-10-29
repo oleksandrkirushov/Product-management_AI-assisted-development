@@ -7,10 +7,10 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 @Component({
   selector: 'app-product-form',
   imports: [ReactiveFormsModule],
-  templateUrl: './product-form.html',
-  styleUrl: './product-form.scss',
+  templateUrl: './product-form.component.html',
+  styleUrl: './product-form.component.scss',
 })
-export class ProductForm {
+export class ProductFormComponent {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly productService = inject(ProductService);
   private readonly router = inject(Router);

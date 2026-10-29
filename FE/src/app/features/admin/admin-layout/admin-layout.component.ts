@@ -37,9 +37,9 @@ const ADMIN_NAV_ITEMS: readonly AdminNavItem[] = [
     MatListItemTitle,
     MatIcon,
   ],
-  templateUrl: './admin-layout.html',
-  styleUrl: './admin-layout.scss',
+  templateUrl: './admin-layout.component.html',
+  styleUrl: './admin-layout.component.scss',
 })
-export class AdminLayout {
+export class AdminLayoutComponent {
   protected readonly navItems = ADMIN_NAV_ITEMS;
 }

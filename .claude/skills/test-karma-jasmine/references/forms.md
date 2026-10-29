@@ -27,7 +27,7 @@ export interface SignUpData {
     </form>
   `,
 })
-export class SignUpForm {
+export class SignUpFormComponent {
   private readonly fb = inject(NonNullableFormBuilder);
   readonly submitted = output<SignUpData>();
 
@@ -50,10 +50,10 @@ export class SignUpForm {
 
 ```ts
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { SignUpData, SignUpForm } from './sign-up-form';
+import { SignUpData, SignUpFormComponent } from './sign-up-form.component';
 
-describe('SignUpForm', () => {
-  let fixture: ComponentFixture<SignUpForm>;
+describe('SignUpFormComponent', () => {
+  let fixture: ComponentFixture<SignUpFormComponent>;
   let el: HTMLElement;
   let submitted: SignUpData[];
 
@@ -72,7 +72,7 @@ describe('SignUpForm', () => {
   }
 
   beforeEach(async () => {
-    fixture = TestBed.createComponent(SignUpForm);
+    fixture = TestBed.createComponent(SignUpFormComponent);
     submitted = [];
     fixture.componentInstance.submitted.subscribe((data) => submitted.push(data));
     await fixture.whenStable();

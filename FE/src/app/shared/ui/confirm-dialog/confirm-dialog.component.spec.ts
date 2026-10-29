@@ -3,9 +3,9 @@ import { TestBed } from '@angular/core/testing';
 import { OverlayContainer } from '@angular/cdk/overlay';
 import { MATERIAL_ANIMATIONS } from '@angular/material/core';
 import { MatDialog } from '@angular/material/dialog';
-import { ConfirmDialogData, openConfirmDialog } from './confirm-dialog';
+import { ConfirmDialogData, openConfirmDialog } from './confirm-dialog.component';
 
-describe('ConfirmDialog', () => {
+describe('ConfirmDialogComponent', () => {
   const data: ConfirmDialogData = {
     title: 'Deactivate user?',
     message: 'The user will lose access immediately.',

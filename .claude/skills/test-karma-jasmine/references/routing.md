@@ -56,7 +56,7 @@ describe('authGuard', () => {
     }
   `,
 })
-export class ProductDetailsPage {
+export class ProductDetailsPageComponent {
   readonly id = input.required<string>();
   protected readonly product = httpResource<Product>(() => `/api/products/${this.id()}`);
 }
@@ -69,13 +69,13 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 
-describe('ProductDetailsPage', () => {
+describe('ProductDetailsPageComponent', () => {
   let httpMock: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        provideRouter([{ path: 'products/:id', component: ProductDetailsPage }], withComponentInputBinding()),
+        provideRouter([{ path: 'products/:id', component: ProductDetailsPageComponent }], withComponentInputBinding()),
         provideHttpClient(),
         provideHttpClientTesting(),
       ],
@@ -87,7 +87,7 @@ describe('ProductDetailsPage', () => {
 
   it('should bind the route param to the id input and render the loaded product', async () => {
     const harness = await RouterTestingHarness.create();
-    const page = await harness.navigateByUrl('/products/42', ProductDetailsPage);
+    const page = await harness.navigateByUrl('/products/42', ProductDetailsPageComponent);
 
     expect(page.id()).toBe('42');
     expect(harness.routeNativeElement?.textContent).toContain('Завантаження');
@@ -100,7 +100,7 @@ describe('ProductDetailsPage', () => {
 
   it('should show an error when the request fails', async () => {
     const harness = await RouterTestingHarness.create();
-    await harness.navigateByUrl('/products/42', ProductDetailsPage);
+    await harness.navigateByUrl('/products/42', ProductDetailsPageComponent);
 
     httpMock.expectOne('/api/products/42').flush('Not found', { status: 404, statusText: 'Not Found' });
     await harness.fixture.whenStable();

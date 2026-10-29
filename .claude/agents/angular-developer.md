@@ -44,7 +44,7 @@ FE/src/app/features/
 │   └── mocks/              # мокові дані для сервісів
 │       └── mock-products.ts
 └── list/                   # фіча = сторінка/UI: компоненти, шаблони, стилі, *.routes.ts
-    ├── list.ts / list.html / list.scss / list.spec.ts
+    ├── list.component.ts / list.component.html / list.component.scss / list.component.spec.ts
     └── list.routes.ts
 ```
 
@@ -56,7 +56,7 @@ FE/src/app/features/
 
 **Сервіси**
 - Усі сервіси даних (API-сервіси, стори, сервіси з моковими даними) — лише в `features/services/`,
-  **не** всередині окремої фічі. Ім'я файлу — `<сутність>-service.ts`, тест — поруч (`*.spec.ts`).
+  **не** всередині окремої фічі. Ім'я файлу — `<сутність>.service.ts`, тест — `<сутність>.service.spec.ts`.
 - Мокові дані — у `features/services/mocks/` (`mock-<сутність>.ts`), їх імпортують лише сервіси.
 - Перед створенням нового сервісу перевір, чи потрібного ще немає — розшир існуючий замість дублювання.
 - Сервіси застосунку загалом (auth, interceptors, обробка помилок) — у `core/`, не тут.
@@ -65,6 +65,8 @@ FE/src/app/features/
 - Папка фічі містить лише UI: компоненти, шаблони, стилі, тести компонентів і `*.routes.ts`.
   Не створюй у фічі папок `models/`, `services/`, `data/`.
 - Компоненти отримують дані тільки через сервіси з `features/services/`, не імпортують моки напряму.
+- Кожен компонент — у власній папці; файли `<name>.component.ts/.html/.scss/.spec.ts`, клас `<Name>Component`
+  (`product-card.component.ts` → `ProductCardComponent`). `ng generate component` створює їх саме так.
 
 **Імпорти**
 - Моделі й сервіси — лише через aliases: `@features/models/<name>`, `@features/services/<name>`.

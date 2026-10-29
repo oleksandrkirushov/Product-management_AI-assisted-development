@@ -8,10 +8,10 @@ import { HasPermission } from '@shared/directives/has-permission/has-permission.
 @Component({
   selector: 'app-list',
   imports: [CurrencyPipe, RouterLink, HasPermission],
-  templateUrl: './list.html',
-  styleUrl: './list.scss',
+  templateUrl: './list.component.html',
+  styleUrl: './list.component.scss',
 })
-export class List {
+export class ListComponent {
   private readonly productService = inject(ProductService);
 
   protected readonly products = rxResource({

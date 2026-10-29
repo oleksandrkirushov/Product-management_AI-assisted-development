@@ -26,6 +26,8 @@
 - `src/app/features/models/` — моделі даних усіх фіч (`@features/models/<name>`)
 - `src/app/features/services/` — сервіси даних усіх фіч (`@features/services/<name>`), моки — у `services/mocks/`
 - Папка конкретної фічі (`features/list/`) — лише UI: компоненти, стилі, тести, `*.routes.ts`
+- Компоненти — кожен у власній папці, файли `<name>.component.ts/.html/.scss/.spec.ts`, клас `<Name>Component`
+  (`header.component.ts` → `HeaderComponent`); `ng generate component` створює їх так (`"type": "component"` в `angular.json`)
 - `src/environments/` — конфігурація оточень
 
 Path aliases (`tsconfig.json`): `@core/*`, `@shared/*`, `@features/*`, `@env/*`.
@@ -34,7 +36,7 @@ Path aliases (`tsconfig.json`): `@core/*`, `@shared/*`, `@features/*`, `@env/*`.
 ## Angular Material
 - Тема — чорно-біла M3 у `src/_material-theme.scss` (`mat.theme()`). У компонентах кольори бери з `var(--mat-sys-*)`, а не hex.
 - `provideAnimations*` не додавай: Material 22 не залежить від `@angular/animations`.
-- Material імпортуй лише в lazy-частинах (`/admin`), щоб він не потрапив в initial bundle. `Header` та інші eager-компоненти його не використовують.
+- Material імпортуй лише в lazy-частинах (`/admin`), щоб він не потрапив в initial bundle. `HeaderComponent` та інші eager-компоненти його не використовують.
 - Іконки — self-hosted підмножина Material Symbols Outlined у `public/fonts/` лише з тими іконками, що використовуються.
   Перед використанням нової іконки в `<mat-icon>` додай її ім'я в `icon_names` і заміни woff2 (інструкція — у коментарі
   в `src/styles.scss`); інакше замість іконки буде текст. `@font-face` має лишатися інлайновим у `src/index.html`

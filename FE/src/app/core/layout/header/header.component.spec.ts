@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { AuthService } from '@features/services/auth.service';
 import { User } from '@features/models/user';
-import { Header } from './header';
+import { HeaderComponent } from './header.component';
 
 const user: User = {
   id: 'u1',
@@ -17,8 +17,8 @@ const user: User = {
   createdAtUtc: '2024-01-01T00:00:00Z',
 };
 
-describe('Header', () => {
-  let fixture: ComponentFixture<Header>;
+describe('HeaderComponent', () => {
+  let fixture: ComponentFixture<HeaderComponent>;
   let authService: jasmine.SpyObj<AuthService>;
   let router: jasmine.SpyObj<Router>;
   let currentUser: ReturnType<typeof signal<User | null>>;
@@ -39,14 +39,14 @@ describe('Header', () => {
     router = jasmine.createSpyObj<Router>('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
-      imports: [Header],
+      imports: [HeaderComponent],
       providers: [
         { provide: AuthService, useValue: authService },
         { provide: Router, useValue: router },
       ],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(Header);
+    fixture = TestBed.createComponent(HeaderComponent);
     await fixture.whenStable();
   });
 
