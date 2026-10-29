@@ -1,0 +1,16 @@
+:host {
+  display: block;
+}
+
+.admin-layout {
+  --mat-sidenav-container-width: 232px;
+  --mat-sidenav-container-background-color: var(--mat-sys-surface-container-low);
+  --mat-sidenav-container-divider-color: var(--mat-sys-outline-variant);
+
+  min-height: calc(100dvh - var(--app-header-height, 2.5rem));
+  background: var(--mat-sys-surface);
+}
+
+.admin-layout__content {
+  padding: 1rem 1.5rem;
+}

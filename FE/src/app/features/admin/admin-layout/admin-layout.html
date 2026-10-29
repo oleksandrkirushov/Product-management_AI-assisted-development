@@ -1,0 +1,25 @@
+<mat-sidenav-container class="admin-layout">
+  <mat-sidenav mode="side" opened disableClose>
+    <nav aria-label="Admin sections">
+      <mat-nav-list>
+        @for (item of navItems; track item.path) {
+          <a
+            mat-list-item
+            [routerLink]="item.path"
+            routerLinkActive
+            #rla="routerLinkActive"
+            ariaCurrentWhenActive="page"
+            [activated]="rla.isActive"
+          >
+            <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+            <span matListItemTitle>{{ item.label }}</span>
+          </a>
+        }
+      </mat-nav-list>
+    </nav>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="admin-layout__content">
+    <router-outlet />
+  </mat-sidenav-content>
+</mat-sidenav-container>
