@@ -1,5 +1,7 @@
 # Структура solution
 
+Дерево нижче — **мінімальний приклад** розкладки шарів і папок на прикладі агрегату `Product`, а не повний перелік файлів. Повна актуальна структура (Users/Roles, Authentication, міграції, усі тести) — у [`BE/PROJECT_STRUCTURE.md`](../../../../BE/PROJECT_STRUCTURE.md).
+
 ```
 BE/
 ├── ProductCatalog.sln
@@ -31,6 +33,7 @@ BE/
 │       ├── Program.cs
 │       ├── appsettings.json
 │       ├── appsettings.Development.json
+│       ├── Authentication/             # ActiveUserTokenValidator: перевірка JWT у OnTokenValidated (claim uid → IsActive)
 │       ├── Authorization/              # requirement, handler, policy provider (ASP.NET-специфіка)
 │       ├── Controllers/
 │       │   ├── ProductsController.cs

@@ -35,7 +35,7 @@
 
    Очікувано: `201 Created`. Скопіюйте `id` з відповіді.
 8. Виконайте `GET /api/products/{id}` із цим `id`. Очікувано: `200 OK` і створений продукт.
-9. Зупинка без видалення БД: `docker compose down`. Повне очищення демонстраційної БД: `docker compose down -v`.
+9. Зупинка без видалення БД: `docker compose down`. Не додавайте `-v`: цей прапорець видаляє Docker-том `sqlserver-data` разом з усіма даними БД (користувачі, продукти). Перед перезбиркою API зробіть бекап тому — див. `.claude/skills/dotnet-clean-architecture/references/configuration-docker.md`.
 
 ## Перевірка через curl
 

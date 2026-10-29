@@ -67,7 +67,7 @@ Domain  ←  Application  ←  Infrastructure  ←  Api
 - Юніт-тести на Domain-валідацію й Application-сервіси (з мок-репозиторієм). Інтеграційних тестів і WebApplicationFactory наразі немає.
 
 ## Конфігурація та Docker → [references/configuration-docker.md](references/configuration-docker.md)
-- Секції `appsettings.json` відображаються в env vars через `__` (double underscore): `Jwt__Key`, `DemoUser__Password`.
+- Секції `appsettings.json` відображаються в env vars через `__` (double underscore): `Jwt__Key`, `AdminSeed__Password`.
 - `compose.yaml`: сервіс `api` + `sqlserver`, `depends_on.sqlserver.condition: service_healthy`.
 
 ## Чеклист перед завершенням задачі

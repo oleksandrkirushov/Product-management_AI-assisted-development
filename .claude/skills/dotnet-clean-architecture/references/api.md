@@ -107,6 +107,11 @@ public sealed class JwtOptions
 - Top-level statements, мінімум коду поза `builder`/`app`.
 - Порядок: `AddControllers()` → `AddApplication()` → `AddInfrastructure(configuration)` → CORS policy → ручне зчитування і **валідація** `JwtOptions` (fail-fast ще до `builder.Build()`, якщо ключ закороткий) → `AddAuthentication().AddJwtBearer(...)` → `AddAuthorization()` → `AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>()` + `AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>()` → Swagger (`AddEndpointsApiExplorer`, `AddSwaggerGen` з Bearer security scheme).
 - Pipeline: `UseSwagger → UseSwaggerUI → UseCors → UseAuthentication → UseAuthorization → MapControllers`.
+- `JwtBearerEvents.OnTokenValidated` викликає `Authentication/ActiveUserTokenValidator.IsAllowedAsync` (бере
+  `IUserRepository` зі scope запиту): користувач шукається за Id з claim `uid` (його додає `AuthController.Login`),
+  має бути `IsActive` і мати той самий `Username`, інакше `context.Fail(...)` → 401 на будь-якому `[Authorize]`-endpoint.
+  Перевірку активності користувача не дублюй у сервісах/контролерах і не роби її authorization requirement'ом
+  (endpoint з явною policy її обійде). Логіку тримай у статичному класі в `Authentication/`, щоб тестувати без HTTP.
 - `/health` endpoint з `AllowAnonymous()`.
 - Локальна функція `ApplyMigrationsAsync` з retry-loop (10 спроб, затримка) викликає `dbContext.Database.MigrateAsync()` перед `RunAsync()` — схема БД керується EF Core migrations, `EnsureCreatedAsync()` не використовується.
 - `public partial class Program;` наприкінці файлу — залишено для майбутньої інтеграції `WebApplicationFactory` в тестах (інтеграційних тестів ще немає).
@@ -114,6 +119,14 @@ public sealed class JwtOptions
 
 ## Авторизація та claims у JWT
 
-- `AuthController.Login` зараз демо-рівня: порівнює `username`/`password` напряму з `DemoUser` секцією конфігурації (**без хешування**), генерує JWT вручну через `JwtSecurityTokenHandler`.
-- Claims у токені: `Sub` (user id), `Jti`, `ClaimTypes.Name` (username), `ClaimTypes.Role` (хардкод `"Admin"` для демо-юзера).
-- Якщо додаєш реальну автентифікацію (User entity, реєстрація) — зберігай пароль як хеш (`BCrypt`/`Rfc2898DeriveBytes`, явно уточни з користувачем вибір бібліотеки, бо її ще немає в проєкті), і формуй claims з реальної ролі користувача, а не хардкодженого `"Admin"`.
+- `AuthController.Login` → `AuthService.AuthenticateAsync`: користувач шукається в БД (`IUserRepository.FindByUsernameAsync`), пароль перевіряється через порт `IPasswordHasher` (реалізація — `Infrastructure/Security/BCryptPasswordHasher`, BCrypt.Net-Next), роль і її permissions читаються з БД (`IRoleRepository`). Паролі зберігаються лише як BCrypt-хеш; порівнювати пароль напряму чи з конфігурацією не можна.
+- Невідомий username, невірний пароль і деактивований користувач (`!IsActive`, перевіряється **після** верифікації пароля, щоб не відрізнятись за часом) → `AuthService` повертає `null` → 401 з тим самим тілом `{ "message": "Invalid username or password." }`, щоб не розкривати стан акаунту.
+- JWT генерується вручну через `JwtSecurityTokenHandler` (HmacSha256, `Jwt:Key`, строк `Jwt:ExpirationMinutes`). Claims:
+  - `Sub` — username;
+  - `Jti` — новий Guid на кожен токен;
+  - `uid` (`ActiveUserTokenValidator.UserIdClaimType`) — `User.Id`, за ним `OnTokenValidated` перевіряє, що користувач існує й активний;
+  - `ClaimTypes.Name` — username **у тому вигляді, як він збережений у БД** (не як його ввели при логіні — валідатор порівнює Ordinal);
+  - `ClaimTypes.Email` — email;
+  - `ClaimTypes.Role` — назва ролі з БД;
+  - `permissions` (`PermissionAuthorizationHandler.PermissionsClaimType`) — JSON-масив рядків прав ролі, на ньому працює permission-based авторизація.
+- Новий claim, від якого залежить авторизація, додавай у `Login` і покривай тестом round-trip (`ActiveUserTokenValidatorTests.UserIdClaim_SurvivesJwtRoundTripWithInboundClaimMapping` — приклад), бо JwtBearer за замовчуванням перейменовує частину вхідних claims.
