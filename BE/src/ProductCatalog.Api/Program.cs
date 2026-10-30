@@ -1,4 +1,5 @@
 using System.Text;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
@@ -7,8 +8,10 @@ using Microsoft.OpenApi;
 using ProductCatalog.Api.Authentication;
 using ProductCatalog.Api.Authorization;
 using ProductCatalog.Api.Options;
+using ProductCatalog.Api.RateLimiting;
 using ProductCatalog.Application;
 using ProductCatalog.Application.Abstractions;
+using ProductCatalog.Application.Users;
 using ProductCatalog.Domain.Entities;
 using ProductCatalog.Infrastructure;
 using ProductCatalog.Infrastructure.Persistence;
@@ -49,7 +52,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key)),
         ClockSkew = TimeSpan.FromSeconds(30)
     };
-    // A JWT is stateless: reject tokens of users deactivated or deleted after the token was issued.
+    // A JWT is stateless: reject tokens of users deactivated or deleted, or whose password changed,
+    // after the token was issued.
     options.Events = new JwtBearerEvents
     {
         OnTokenValidated = async context =>
@@ -65,6 +69,31 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
     };
 });
 builder.Services.AddAuthorization();
+
+var passwordResetOptions = builder.Configuration.GetSection(PasswordResetOptions.SectionName).Get<PasswordResetOptions>()
+    ?? throw new InvalidOperationException("Password reset configuration is missing.");
+if (!Uri.TryCreate(passwordResetOptions.ResetUrl, UriKind.Absolute, out var resetUri)
+    || (resetUri.Scheme != Uri.UriSchemeHttp && resetUri.Scheme != Uri.UriSchemeHttps))
+    throw new InvalidOperationException("'PasswordReset:ResetUrl' must be an absolute http(s) URL.");
+if (passwordResetOptions.TokenLifetimeMinutes <= 0)
+    throw new InvalidOperationException("'PasswordReset:TokenLifetimeMinutes' must be positive.");
+builder.Services.AddSingleton(passwordResetOptions);
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    // Partitioned by the connection's IP. Behind a reverse proxy this needs ForwardedHeaders first,
+    // otherwise all clients share the proxy's IP.
+    options.AddPolicy(RateLimitingPolicies.PasswordReset, httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = RateLimitingPolicies.PasswordResetPermitLimit,
+                Window = RateLimitingPolicies.PasswordResetWindow,
+                QueueLimit = 0
+            }));
+});
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
 builder.Services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
 builder.Services.AddEndpointsApiExplorer();
@@ -90,6 +119,8 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseCors("AllowFrontend");
+// After CORS, so a 429 still carries CORS headers and the browser lets the front end read the status.
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

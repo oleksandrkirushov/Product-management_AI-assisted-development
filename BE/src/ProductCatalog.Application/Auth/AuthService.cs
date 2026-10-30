@@ -30,6 +30,7 @@ public sealed class AuthService(
         if (role is null)
             return null;
 
-        return new AuthenticatedUserDto(user.Id, user.Username, user.Email, role.Name, role.Permissions);
+        return new AuthenticatedUserDto(
+            user.Id, user.Username, user.Email, role.Name, role.Permissions, user.SecurityStamp);
     }
 }

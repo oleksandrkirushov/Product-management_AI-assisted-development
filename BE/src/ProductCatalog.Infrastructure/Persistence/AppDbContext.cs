@@ -12,6 +12,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<Product> Products => Set<Product>();
     public DbSet<User> Users => Set<User>();
     public DbSet<Role> Roles => Set<Role>();
+    public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -47,6 +48,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         user.Property(x => x.PasswordHash).IsRequired();
         user.Property(x => x.RoleId).IsRequired();
         user.Property(x => x.IsActive).IsRequired();
+        user.Property(x => x.SecurityStamp).HasMaxLength(64).IsRequired();
         user.Property(x => x.CreatedAtUtc).IsRequired();
         user.Property(x => x.UpdatedAtUtc).IsRequired();
         user.HasIndex(x => x.Username).IsUnique();
@@ -55,5 +57,18 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             .WithMany()
             .HasForeignKey(x => x.RoleId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        var passwordResetToken = modelBuilder.Entity<PasswordResetToken>();
+        passwordResetToken.ToTable("PasswordResetTokens");
+        passwordResetToken.HasKey(x => x.Id);
+        passwordResetToken.Property(x => x.UserId).IsRequired();
+        passwordResetToken.Property(x => x.TokenHash).HasMaxLength(PasswordResetToken.TokenHashMaxLength).IsRequired();
+        passwordResetToken.Property(x => x.ExpiresAtUtc).IsRequired();
+        passwordResetToken.Property(x => x.CreatedAtUtc).IsRequired();
+        passwordResetToken.HasIndex(x => x.TokenHash).IsUnique();
+        passwordResetToken.HasOne<User>()
+            .WithMany()
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

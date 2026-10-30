@@ -10,7 +10,6 @@ public sealed class RegisterUserService(
     IUnitOfWork unitOfWork
     )
 {
-    private const int MinimumPasswordLength = 8;
     private const string DefaultRoleName = "User";
 
     public async Task<CreateUserResponse> RegisterAsync(
@@ -18,9 +17,8 @@ public sealed class RegisterUserService(
         CancellationToken cancellationToken = default
         )
     {
-        if (string.IsNullOrWhiteSpace(command.Password) || command.Password.Length < MinimumPasswordLength)
-            throw new ArgumentException(
-                $"Password must be at least {MinimumPasswordLength} characters long.", nameof(command));
+        if (!PasswordPolicy.IsSatisfiedBy(command.Password))
+            throw new ArgumentException(PasswordPolicy.TooShortMessage, nameof(command));
 
         if (await userRepository.FindByUsernameAsync(command.Username, cancellationToken) is not null)
             throw new DuplicateUsernameException(command.Username);

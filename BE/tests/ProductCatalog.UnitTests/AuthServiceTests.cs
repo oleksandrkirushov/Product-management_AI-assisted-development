@@ -75,6 +75,26 @@ public sealed class AuthServiceTests
         Assert.Equal("jdoe", result.Username);
         Assert.Equal("User", result.RoleName);
         Assert.Equal(["products:read"], result.Permissions);
+        Assert.Equal(user.SecurityStamp, result.SecurityStamp);
+    }
+
+    [Fact]
+    public async Task AuthenticateAsync_AfterPasswordChange_ReturnsNewSecurityStamp()
+    {
+        var role = new Role("User", ["products:read"]);
+        var user = new User("jdoe", "jdoe@example.com", "John", "Doe", "hashed:Secret123", role.Id);
+        var userRepository = new InMemoryUserRepository { Items = { user } };
+        var roleRepository = new InMemoryRoleRepository { Items = { role } };
+        var service = new AuthService(userRepository, roleRepository, new FakePasswordHasher());
+        var stampBefore = (await service.AuthenticateAsync("jdoe", "Secret123"))!.SecurityStamp;
+
+        user.ChangePasswordHash("hashed:NewSecret123");
+        var result = await service.AuthenticateAsync("jdoe", "NewSecret123");
+
+        Assert.NotNull(result);
+        Assert.Equal(user.SecurityStamp, result!.SecurityStamp);
+        Assert.NotEqual(stampBefore, result.SecurityStamp);
+        Assert.Null(await service.AuthenticateAsync("jdoe", "Secret123"));
     }
 
     [Fact]

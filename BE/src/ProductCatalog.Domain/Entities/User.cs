@@ -36,6 +36,7 @@ public sealed class User
         PasswordHash = passwordHash;
         RoleId = roleId;
         IsActive = true;
+        SecurityStamp = NewSecurityStamp();
         CreatedAtUtc = DateTime.UtcNow;
         UpdatedAtUtc = CreatedAtUtc;
     }
@@ -48,8 +49,24 @@ public sealed class User
     public string PasswordHash { get; private set; } = string.Empty;
     public Guid RoleId { get; private set; }
     public bool IsActive { get; private set; }
+
+    /// <summary>
+    /// Opaque value that changes on every password change. It is copied into issued JWTs, so a token
+    /// whose stamp no longer matches belongs to a revoked session.
+    /// </summary>
+    public string SecurityStamp { get; private set; } = string.Empty;
     public DateTime CreatedAtUtc { get; private set; }
     public DateTime UpdatedAtUtc { get; private set; }
+
+    public void ChangePasswordHash(string newPasswordHash)
+    {
+        if (string.IsNullOrWhiteSpace(newPasswordHash))
+            throw new ArgumentException("Password hash is required.", nameof(newPasswordHash));
+
+        PasswordHash = newPasswordHash;
+        SecurityStamp = NewSecurityStamp();
+        UpdatedAtUtc = DateTime.UtcNow;
+    }
 
     public void Activate()
     {
@@ -68,6 +85,8 @@ public sealed class User
         IsActive = false;
         UpdatedAtUtc = DateTime.UtcNow;
     }
+
+    private static string NewSecurityStamp() => Guid.NewGuid().ToString("N");
 
     private static bool IsValidEmail(string email)
     {

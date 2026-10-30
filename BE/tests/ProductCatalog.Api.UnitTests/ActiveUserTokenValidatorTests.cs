@@ -10,6 +10,7 @@ using JsonWebTokenHandler = Microsoft.IdentityModel.JsonWebTokens.JsonWebTokenHa
 namespace ProductCatalog.Api.UnitTests;
 
 // AC23: a deactivated or deleted user loses access immediately, even with a still-valid token.
+// Password reset: a password change revokes every token issued before it (security stamp, "sst").
 public sealed class ActiveUserTokenValidatorTests
 {
     private sealed class InMemoryUserRepository : IUserRepository
@@ -60,14 +61,15 @@ public sealed class ActiveUserTokenValidatorTests
     private static ClaimsPrincipal PrincipalWith(params Claim[] claims) =>
         new(new ClaimsIdentity(claims, authenticationType: "Test"));
 
-    private static ClaimsPrincipal PrincipalWith(string userId, string username) =>
+    private static ClaimsPrincipal PrincipalWith(string userId, string username, string securityStamp) =>
         PrincipalWith(
             new Claim(ActiveUserTokenValidator.UserIdClaimType, userId),
-            new Claim(ClaimTypes.Name, username));
+            new Claim(ClaimTypes.Name, username),
+            new Claim(ActiveUserTokenValidator.SecurityStampClaimType, securityStamp));
 
     // The principal a token issued to this user at login would produce.
     private static ClaimsPrincipal PrincipalFor(User user) =>
-        PrincipalWith(user.Id.ToString(), user.Username);
+        PrincipalWith(user.Id.ToString(), user.Username, user.SecurityStamp);
 
     [Fact]
     public async Task IsAllowedAsync_ActiveUser_ReturnsTrue()
@@ -135,7 +137,7 @@ public sealed class ActiveUserTokenValidatorTests
         var bob = CreateUser("bob");
         var repository = new InMemoryUserRepository { Items = { alice, bob } };
 
-        var principal = PrincipalWith(alice.Id.ToString(), bob.Username);
+        var principal = PrincipalWith(alice.Id.ToString(), bob.Username, alice.SecurityStamp);
 
         Assert.False(await ActiveUserTokenValidator.IsAllowedAsync(principal, repository));
     }
@@ -146,7 +148,7 @@ public sealed class ActiveUserTokenValidatorTests
         var user = CreateUser("jdoe");
         var repository = new InMemoryUserRepository { Items = { user } };
 
-        var principal = PrincipalWith(user.Id.ToString(), "JDoe");
+        var principal = PrincipalWith(user.Id.ToString(), "JDoe", user.SecurityStamp);
 
         Assert.False(await ActiveUserTokenValidator.IsAllowedAsync(principal, repository));
     }
@@ -187,7 +189,8 @@ public sealed class ActiveUserTokenValidatorTests
     {
         var repository = new InMemoryUserRepository { Items = { CreateUser() } };
 
-        Assert.False(await ActiveUserTokenValidator.IsAllowedAsync(PrincipalWith(userId, "jdoe"), repository));
+        Assert.False(await ActiveUserTokenValidator.IsAllowedAsync(
+            PrincipalWith(userId, "jdoe", "some-stamp"), repository));
         Assert.Empty(repository.RequestedIds);
     }
 
@@ -214,7 +217,7 @@ public sealed class ActiveUserTokenValidatorTests
         var repository = new InMemoryUserRepository { Items = { user } };
 
         Assert.False(await ActiveUserTokenValidator.IsAllowedAsync(
-            PrincipalWith(user.Id.ToString(), username), repository));
+            PrincipalWith(user.Id.ToString(), username, user.SecurityStamp), repository));
         Assert.Empty(repository.RequestedIds);
     }
 
@@ -245,6 +248,7 @@ public sealed class ActiveUserTokenValidatorTests
             [
                 new Claim(JwtRegisteredClaimNames.Sub, user.Username),
                 new Claim(ActiveUserTokenValidator.UserIdClaimType, user.Id.ToString()),
+                new Claim(ActiveUserTokenValidator.SecurityStampClaimType, user.SecurityStamp),
                 new Claim(ClaimTypes.Name, user.Username)
             ],
             expires: DateTime.UtcNow.AddMinutes(5),
@@ -262,11 +266,83 @@ public sealed class ActiveUserTokenValidatorTests
 
         Assert.True(validation.IsValid);
         Assert.False(JsonWebTokenHandler.DefaultInboundClaimTypeMap.ContainsKey(ActiveUserTokenValidator.UserIdClaimType));
+        Assert.False(JsonWebTokenHandler.DefaultInboundClaimTypeMap.ContainsKey(ActiveUserTokenValidator.SecurityStampClaimType));
         var principal = new ClaimsPrincipal(validation.ClaimsIdentity);
         Assert.Equal(user.Id.ToString(), principal.FindFirstValue(ActiveUserTokenValidator.UserIdClaimType));
         Assert.Equal(user.Username, principal.FindFirstValue(ClaimTypes.Name));
+        Assert.Equal(user.SecurityStamp, principal.FindFirstValue(ActiveUserTokenValidator.SecurityStampClaimType));
 
         var repository = new InMemoryUserRepository { Items = { user } };
         Assert.True(await ActiveUserTokenValidator.IsAllowedAsync(principal, repository));
+    }
+
+    // A token issued before the security stamp existed (no "sst") is rejected: users have to log in again.
+    [Fact]
+    public async Task IsAllowedAsync_TokenWithoutSecurityStampClaim_ReturnsFalseWithoutQueryingRepository()
+    {
+        var user = CreateUser();
+        var repository = new InMemoryUserRepository { Items = { user } };
+        var principal = PrincipalWith(
+            new Claim(ActiveUserTokenValidator.UserIdClaimType, user.Id.ToString()),
+            new Claim(ClaimTypes.Name, user.Username));
+
+        Assert.False(await ActiveUserTokenValidator.IsAllowedAsync(principal, repository));
+        Assert.Empty(repository.RequestedIds);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task IsAllowedAsync_EmptyOrWhitespaceSecurityStamp_ReturnsFalseWithoutQueryingRepository(string stamp)
+    {
+        var user = CreateUser();
+        var repository = new InMemoryUserRepository { Items = { user } };
+
+        Assert.False(await ActiveUserTokenValidator.IsAllowedAsync(
+            PrincipalWith(user.Id.ToString(), user.Username, stamp), repository));
+        Assert.Empty(repository.RequestedIds);
+    }
+
+    [Fact]
+    public async Task IsAllowedAsync_DifferentSecurityStamp_ReturnsFalse()
+    {
+        var user = CreateUser();
+        var repository = new InMemoryUserRepository { Items = { user } };
+
+        Assert.False(await ActiveUserTokenValidator.IsAllowedAsync(
+            PrincipalWith(user.Id.ToString(), user.Username, "another-stamp"), repository));
+    }
+
+    [Fact]
+    public async Task IsAllowedAsync_SecurityStampDiffersOnlyByCase_ReturnsFalse()
+    {
+        var user = CreateUser();
+        var repository = new InMemoryUserRepository { Items = { user } };
+
+        Assert.False(await ActiveUserTokenValidator.IsAllowedAsync(
+            PrincipalWith(user.Id.ToString(), user.Username, user.SecurityStamp.ToUpperInvariant()), repository));
+    }
+
+    [Fact]
+    public async Task IsAllowedAsync_MatchingSecurityStamp_ReturnsTrue()
+    {
+        var user = CreateUser();
+        var repository = new InMemoryUserRepository { Items = { user } };
+
+        Assert.True(await ActiveUserTokenValidator.IsAllowedAsync(
+            PrincipalWith(user.Id.ToString(), user.Username, user.SecurityStamp), repository));
+    }
+
+    [Fact]
+    public async Task IsAllowedAsync_TokenIssuedBeforePasswordChange_ReturnsFalse()
+    {
+        var user = CreateUser();
+        var repository = new InMemoryUserRepository { Items = { user } };
+        var issuedBeforeChange = PrincipalFor(user);
+
+        user.ChangePasswordHash("hashed:NewSecret123");
+
+        Assert.False(await ActiveUserTokenValidator.IsAllowedAsync(issuedBeforeChange, repository));
+        Assert.True(await ActiveUserTokenValidator.IsAllowedAsync(PrincipalFor(user), repository));
     }
 }

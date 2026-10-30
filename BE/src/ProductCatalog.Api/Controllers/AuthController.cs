@@ -4,12 +4,14 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using ProductCatalog.Api.Authentication;
 using ProductCatalog.Api.Authorization;
 using ProductCatalog.Api.Contracts;
 using ProductCatalog.Api.Options;
+using ProductCatalog.Api.RateLimiting;
 using ProductCatalog.Application.Auth;
 using ProductCatalog.Application.Users;
 
@@ -20,9 +22,13 @@ namespace ProductCatalog.Api.Controllers;
 public sealed class AuthController(
     AuthService authService,
     RegisterUserService registerUserService,
-    IOptions<JwtOptions> jwtOptions
+    PasswordResetService passwordResetService,
+    IOptions<JwtOptions> jwtOptions,
+    ILogger<AuthController> logger
     ) : ControllerBase
 {
+    public const string ForgotPasswordMessage = "If an account with this email exists, a reset link has been sent.";
+
     [AllowAnonymous]
     [HttpPost("login")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -41,6 +47,7 @@ public sealed class AuthController(
             new Claim(JwtRegisteredClaimNames.Sub, authenticatedUser.Username),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim(ActiveUserTokenValidator.UserIdClaimType, authenticatedUser.Id.ToString()),
+            new Claim(ActiveUserTokenValidator.SecurityStampClaimType, authenticatedUser.SecurityStamp),
             new Claim(ClaimTypes.Name, authenticatedUser.Username),
             new Claim(ClaimTypes.Email, authenticatedUser.Email),
             new Claim(ClaimTypes.Role, authenticatedUser.RoleName),
@@ -85,6 +92,53 @@ public sealed class AuthController(
             return Conflict(new { message = ex.Message });
         }
         catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    // Always 202 with the same body, whether or not the e-mail belongs to an (active) account — also when
+    // sending fails: a 500 only for existing accounts would reveal which e-mails are registered.
+    [AllowAnonymous]
+    [HttpPost("forgot-password")]
+    [EnableRateLimiting(RateLimitingPolicies.PasswordReset)]
+    [ProducesResponseType(StatusCodes.Status202Accepted)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await passwordResetService.RequestResetAsync(request.Email, cancellationToken);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            // The address is not logged: the log line must not become an account-existence record either.
+            logger.LogError(ex, "Password reset request could not be completed.");
+        }
+
+        return Accepted(new { message = ForgotPasswordMessage });
+    }
+
+    [AllowAnonymous]
+    [HttpPost("reset-password")]
+    [EnableRateLimiting(RateLimitingPolicies.PasswordReset)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+    public async Task<IActionResult> ResetPassword(ResetPasswordRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await passwordResetService.ResetAsync(
+                new ResetPasswordCommand(request.Token, request.NewPassword ?? string.Empty), cancellationToken);
+            return NoContent();
+        }
+        catch (InvalidPasswordResetTokenException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (InvalidPasswordException ex)
         {
             return BadRequest(new { message = ex.Message });
         }

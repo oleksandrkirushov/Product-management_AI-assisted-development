@@ -21,6 +21,16 @@ public sealed class UserTests
         Assert.NotEqual(default, user.CreatedAtUtc);
         Assert.Equal(user.CreatedAtUtc, user.UpdatedAtUtc);
         Assert.True(user.IsActive);
+        Assert.False(string.IsNullOrWhiteSpace(user.SecurityStamp));
+    }
+
+    [Fact]
+    public void Constructor_GeneratesDistinctSecurityStampPerUser()
+    {
+        var first = new User("jdoe", "jdoe@example.com", "John", "Doe", "hash", Guid.NewGuid());
+        var second = new User("jane", "jane@example.com", "Jane", "Doe", "hash", Guid.NewGuid());
+
+        Assert.NotEqual(first.SecurityStamp, second.SecurityStamp);
     }
 
     [Theory]
@@ -91,5 +101,44 @@ public sealed class UserTests
 
         Assert.False(user.IsActive);
         Assert.Equal(updatedBefore, user.UpdatedAtUtc);
+    }
+
+    [Fact]
+    public void ChangePasswordHash_WithValidHash_UpdatesHashStampAndTimestamp()
+    {
+        var user = new User("jdoe", "jdoe@example.com", "John", "Doe", "old-hash", Guid.NewGuid());
+        var stampBefore = user.SecurityStamp;
+        var updatedBefore = user.UpdatedAtUtc;
+
+        user.ChangePasswordHash("new-hash");
+
+        Assert.Equal("new-hash", user.PasswordHash);
+        Assert.False(string.IsNullOrWhiteSpace(user.SecurityStamp));
+        Assert.NotEqual(stampBefore, user.SecurityStamp);
+        Assert.True(user.UpdatedAtUtc >= updatedBefore);
+    }
+
+    [Fact]
+    public void ChangePasswordHash_WithSameHashAgain_StillRotatesStamp()
+    {
+        var user = new User("jdoe", "jdoe@example.com", "John", "Doe", "hash", Guid.NewGuid());
+        var stampBefore = user.SecurityStamp;
+
+        user.ChangePasswordHash("hash");
+
+        Assert.NotEqual(stampBefore, user.SecurityStamp);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ChangePasswordHash_WithEmptyHash_ThrowsAndKeepsState(string newHash)
+    {
+        var user = new User("jdoe", "jdoe@example.com", "John", "Doe", "old-hash", Guid.NewGuid());
+        var stampBefore = user.SecurityStamp;
+
+        Assert.Throws<ArgumentException>(() => user.ChangePasswordHash(newHash));
+        Assert.Equal("old-hash", user.PasswordHash);
+        Assert.Equal(stampBefore, user.SecurityStamp);
     }
 }
