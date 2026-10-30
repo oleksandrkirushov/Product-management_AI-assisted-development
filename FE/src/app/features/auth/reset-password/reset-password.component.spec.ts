@@ -1,8 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Router, provideRouter } from '@angular/router';
+import { NavigationEnd, Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
-import { Subject, of, throwError } from 'rxjs';
+import { Subject, filter, firstValueFrom, of, throwError } from 'rxjs';
 import { ResetPasswordComponent } from './reset-password.component';
 import { AuthService } from '@features/services/auth.service';
 
@@ -174,12 +174,53 @@ describe('ResetPasswordComponent', () => {
       expect(router.url).toBe('/reset-password?lang=en');
     });
 
+    it('should keep the URL fragment when removing the token from the address bar', async () => {
+      await open('/reset-password?token=abc#top');
+      await harness.fixture.whenStable();
+
+      expect(router.url).toBe('/reset-password#top');
+    });
+
     it('should submit the token read before it was removed from the address bar', async () => {
       authService.resetPassword.and.returnValue(of(undefined));
       await open('/reset-password?token=abc');
       spyOn(router, 'navigate').and.resolveTo(true);
       await fillValidForm();
 
+      await submit();
+
+      expect(authService.resetPassword).toHaveBeenCalledOnceWith('abc', 'Password1');
+    });
+
+    it('should keep the token when it is removed from the URL before the first render', async () => {
+      authService.resetPassword.and.returnValue(of(undefined));
+      harness = await RouterTestingHarness.create();
+      const tokenRemoved = firstValueFrom(
+        router.events.pipe(
+          filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+          filter((event) => event.urlAfterRedirects === '/reset-password'),
+        ),
+      );
+
+      // Navigate without the harness so nothing renders (or reads the component's signals)
+      // until the follow-up navigation that strips the token has completed.
+      await router.navigateByUrl('/reset-password?token=abc');
+      await tokenRemoved;
+      expect(router.url).toBe('/reset-password');
+
+      harness.detectChanges();
+      await harness.fixture.whenStable();
+      const root = harness.routeNativeElement;
+      if (!root) {
+        throw new Error('Route element not rendered');
+      }
+      el = root;
+      spyOn(router, 'navigate').and.resolveTo(true);
+
+      expect(el.querySelector('.info-panel')).toBeNull();
+      expect(el.querySelector('form')).not.toBeNull();
+
+      await fillValidForm();
       await submit();
 
       expect(authService.resetPassword).toHaveBeenCalledOnceWith('abc', 'Password1');

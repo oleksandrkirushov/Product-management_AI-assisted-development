@@ -1,8 +1,8 @@
 import { Component, DestroyRef, computed, inject, linkedSignal, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/router';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, NavigationEnd, ParamMap, Router, RouterLink } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs';
 import { AuthService } from '@features/services/auth.service';
 import { getServerErrorMessage } from '@core/utils/http-error';
@@ -21,22 +21,13 @@ export class ResetPasswordComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
 
-  /** Raw `?token=` query param of the email link (`null` when absent). */
-  private readonly tokenFromUrl = toSignal(
-    this.route.queryParamMap.pipe(map((params) => params.get('token'))),
-    { requireSync: true },
-  );
-
   /**
-   * One-time reset token kept in component state. A new non-blank token in the URL replaces it;
-   * an absent/blank param keeps the previous value, so removing the token from the address bar
-   * (see the constructor) doesn't turn the page into "invalid link".
+   * One-time reset token kept in component state. Captured eagerly from the route snapshot at
+   * construction time (not lazily on first render): in a zoneless app the first change detection
+   * may run only after the token has already been removed from the URL (see the constructor).
+   * A new non-blank token in the URL replaces it; an absent/blank param keeps the current value.
    */
-  private readonly token = linkedSignal<string | null, string>({
-    source: this.tokenFromUrl,
-    computation: (fromUrl, previous) =>
-      fromUrl && fromUrl.trim().length > 0 ? fromUrl : (previous?.value ?? ''),
-  });
+  private readonly token = signal(nonBlankToken(this.route.snapshot.queryParamMap) ?? '');
   readonly hasToken = computed(() => this.token().length > 0);
 
   readonly isLoading = signal(false);
@@ -63,7 +54,17 @@ export class ResetPasswordComponent {
   readonly confirmPasswordControl = computed(() => this.form.get('confirmPassword'));
 
   constructor() {
-    // Keep the secret token out of the address bar, browser history and Referer once it's read.
+    this.route.queryParamMap
+      .pipe(
+        map(nonBlankToken),
+        filter((token): token is string => token !== null),
+        takeUntilDestroyed(),
+      )
+      .subscribe((token) => this.token.set(token));
+
+    // Once the token is captured, strip it from the address bar. `replaceUrl` overwrites the
+    // current session-history entry, so it also won't be sent as Referer or restored by
+    // back/forward; any copy made before this point (e.g. global browser history) is unaffected.
     // Waits for NavigationEnd: navigating while the current navigation is still activating this
     // route would supersede it before the router state is committed.
     this.router.events
@@ -77,6 +78,7 @@ export class ResetPasswordComponent {
           relativeTo: this.route,
           queryParams: { token: null },
           queryParamsHandling: 'merge',
+          preserveFragment: true,
           replaceUrl: true,
         });
       });
@@ -123,4 +125,10 @@ export class ResetPasswordComponent {
           : 'Something went wrong. Please try again later.'),
     );
   }
+}
+
+/** The `token` query param, or `null` when it is absent or blank. */
+function nonBlankToken(params: ParamMap): string | null {
+  const token = params.get('token');
+  return token && token.trim().length > 0 ? token : null;
 }
