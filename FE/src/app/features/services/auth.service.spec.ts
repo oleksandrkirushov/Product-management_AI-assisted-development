@@ -335,4 +335,33 @@ describe('AuthService', () => {
       expect(service.isAuthenticated()).toBeFalse();
     });
   });
+
+  describe('password reset', () => {
+    it('should POST the email to /auth/forgot-password and complete on 202', () => {
+      let completed = false;
+
+      service.forgotPassword('user@example.com').subscribe({ complete: () => (completed = true) });
+
+      const req = httpMock.expectOne(`${environment.apiUrl}/auth/forgot-password`);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({ email: 'user@example.com' });
+      req.flush(
+        { message: 'If an account with this email exists, a reset link has been sent.' },
+        { status: 202, statusText: 'Accepted' },
+      );
+      expect(completed).toBe(true);
+    });
+
+    it('should POST token and newPassword to /auth/reset-password and complete on 204', () => {
+      let completed = false;
+
+      service.resetPassword('abc', 'NewPass123').subscribe({ complete: () => (completed = true) });
+
+      const req = httpMock.expectOne(`${environment.apiUrl}/auth/reset-password`);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({ token: 'abc', newPassword: 'NewPass123' });
+      req.flush(null, { status: 204, statusText: 'No Content' });
+      expect(completed).toBe(true);
+    });
+  });
 });

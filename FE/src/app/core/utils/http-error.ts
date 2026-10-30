@@ -7,8 +7,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
  * the shape of an `HttpErrorResponse`) from an HTTP error without resorting to an
  * unsafe `as` cast.
  *
- * Returns `undefined` when the error doesn't match the expected shape, so callers
- * can fall back to a generic message.
+ * Returns `undefined` when the error doesn't match the expected shape or the message
+ * is empty/whitespace-only, so callers can fall back to a generic message with `??`.
  */
 export function getServerErrorMessage(error: unknown): string | undefined {
   if (!isRecord(error) || !('error' in error)) {
@@ -21,5 +21,5 @@ export function getServerErrorMessage(error: unknown): string | undefined {
   }
 
   const message = body['message'];
-  return typeof message === 'string' ? message : undefined;
+  return typeof message === 'string' && message.trim().length > 0 ? message : undefined;
 }

@@ -15,6 +15,12 @@
       </div>
     }
 
+    @if (showResetSuccess()) {
+      <div class="success-banner" role="status" aria-live="polite" aria-atomic="true">
+        Password changed. Please log in with your new password.
+      </div>
+    }
+
     <form
       [formGroup]="form"
       (submit)="submit(); $event.preventDefault()"
@@ -71,6 +77,7 @@
             Password is required
           </p>
         }
+        <a class="forgot-password-link" routerLink="/forgot-password">Forgot password?</a>
       </div>
 
       <button

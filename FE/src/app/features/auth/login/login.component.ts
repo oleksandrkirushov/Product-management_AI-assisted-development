@@ -1,6 +1,6 @@
 import { Component, DestroyRef, computed, inject, output, signal } from '@angular/core';
 import { ReactiveFormsModule, Validators, NonNullableFormBuilder } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '@features/services/auth.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { getServerErrorMessage } from '@core/utils/http-error';
@@ -15,12 +15,15 @@ export class LoginComponent {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly loginSuccess = output<void>();
 
   readonly isLoading = signal(false);
   readonly errorMessage = signal<string | null>(null);
+  /** Shown after a successful password reset (`/login?reset=success`). */
+  readonly showResetSuccess = signal(this.route.snapshot.queryParamMap.get('reset') === 'success');
 
   readonly form = this.fb.group({
     username: ['', Validators.required],
@@ -42,6 +45,7 @@ export class LoginComponent {
 
     this.isLoading.set(true);
     this.errorMessage.set(null);
+    this.showResetSuccess.set(false);
 
     const { username, password } = this.form.getRawValue();
     this.authService

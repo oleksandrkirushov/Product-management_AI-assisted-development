@@ -2,7 +2,12 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, map, of, switchMap, tap } from 'rxjs';
 import { environment } from '@env/environment';
-import { LoginRequest, LoginResponse } from '@features/models/auth';
+import {
+  ForgotPasswordRequest,
+  LoginRequest,
+  LoginResponse,
+  ResetPasswordRequest,
+} from '@features/models/auth';
 import { RegisterRequest, RegisterResponse, User } from '@features/models/user';
 import { UserService } from '@features/services/user.service';
 
@@ -32,6 +37,23 @@ export class AuthService {
 
   register(request: RegisterRequest): Observable<RegisterResponse> {
     return this.http.post<RegisterResponse>(`${this.apiUrl}/auth/register`, request);
+  }
+
+  /**
+   * Requests a password reset email. The server always answers `202` with a neutral
+   * message (regardless of whether the email exists), so the body is ignored.
+   */
+  forgotPassword(email: string): Observable<void> {
+    const request: ForgotPasswordRequest = { email };
+    return this.http
+      .post<unknown>(`${this.apiUrl}/auth/forgot-password`, request)
+      .pipe(map(() => undefined));
+  }
+
+  /** Sets a new password using the one-time token from the reset email (`204` on success). */
+  resetPassword(token: string, newPassword: string): Observable<void> {
+    const request: ResetPasswordRequest = { token, newPassword };
+    return this.http.post<void>(`${this.apiUrl}/auth/reset-password`, request);
   }
 
   /**

@@ -11,6 +11,8 @@ import { UserService } from '@features/services/user.service';
 import { ListComponent } from '@features/list/list.component';
 import { LoginComponent } from '@features/auth/login/login.component';
 import { RegisterComponent } from '@features/auth/register/register.component';
+import { ForgotPasswordComponent } from '@features/auth/forgot-password/forgot-password.component';
+import { ResetPasswordComponent } from '@features/auth/reset-password/reset-password.component';
 import { UsersComponent } from '@features/admin/users/users.component';
 import { AdminLayoutComponent } from '@features/admin/admin-layout/admin-layout.component';
 
@@ -131,5 +133,21 @@ describe('app routes', () => {
     await harness.navigateByUrl('/admin', LoginComponent);
 
     expect(TestBed.inject(Router).url).toBe('/login');
+  });
+
+  it('should open the Forgot password page on /forgot-password', async () => {
+    const harness = await RouterTestingHarness.create();
+
+    const page = await harness.navigateByUrl('/forgot-password', ForgotPasswordComponent);
+
+    expect(page).toBeInstanceOf(ForgotPasswordComponent);
+  });
+
+  it('should open the Reset password page on /reset-password', async () => {
+    const harness = await RouterTestingHarness.create();
+
+    const page = await harness.navigateByUrl('/reset-password?token=abc', ResetPasswordComponent);
+
+    expect(page).toBeInstanceOf(ResetPasswordComponent);
   });
 });

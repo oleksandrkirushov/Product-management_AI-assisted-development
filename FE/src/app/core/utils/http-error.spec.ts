@@ -55,4 +55,20 @@ describe('getServerErrorMessage', () => {
 
     expect(result).toBeUndefined();
   });
+
+  it('should return undefined when the message is an empty string', () => {
+    const error = new HttpErrorResponse({ error: { message: '' } });
+
+    const result = getServerErrorMessage(error);
+
+    expect(result).toBeUndefined();
+  });
+
+  it('should return undefined when the message contains only whitespace', () => {
+    const error = new HttpErrorResponse({ error: { message: '   ' } });
+
+    const result = getServerErrorMessage(error);
+
+    expect(result).toBeUndefined();
+  });
 });

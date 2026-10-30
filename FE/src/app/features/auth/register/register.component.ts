@@ -1,32 +1,12 @@
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
-import {
-  AbstractControl,
-  ReactiveFormsModule,
-  ValidationErrors,
-  Validators,
-  NonNullableFormBuilder,
-} from '@angular/forms';
+import { ReactiveFormsModule, Validators, NonNullableFormBuilder } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '@features/services/auth.service';
 import { RegisterRequest } from '@features/models/user';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { switchMap } from 'rxjs';
 import { getServerErrorMessage } from '@core/utils/http-error';
-
-/**
- * Cross-field validator applied at the form group level: confirms that
- * `password` and `confirmPassword` controls hold the same value.
- */
-function passwordsMatchValidator(control: AbstractControl): ValidationErrors | null {
-  const password = control.get('password')?.value;
-  const confirmPassword = control.get('confirmPassword')?.value;
-
-  if (!password || !confirmPassword) {
-    return null;
-  }
-
-  return password === confirmPassword ? null : { passwordMismatch: true };
-}
+import { passwordsMatchValidator } from '@shared/validators/passwords-match.validator';
 
 @Component({
   selector: 'app-register',
@@ -53,7 +33,7 @@ export class RegisterComponent {
       password: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', Validators.required],
     },
-    { validators: passwordsMatchValidator },
+    { validators: passwordsMatchValidator() },
   );
 
   readonly usernameControl = computed(() => this.form.get('username'));

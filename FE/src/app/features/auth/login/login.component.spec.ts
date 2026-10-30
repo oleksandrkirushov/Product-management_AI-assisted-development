@@ -1,5 +1,6 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
+import { RouterTestingHarness } from '@angular/router/testing';
 import { Observable, Subject, of, throwError } from 'rxjs';
 import { LoginComponent } from './login.component';
 import { AuthService } from '@features/services/auth.service';
@@ -489,5 +490,101 @@ describe('LoginComponent', () => {
       // (This is verified through TestBed cleanup and no console errors)
       expect(fixture.componentInstance).toBeDefined();
     });
+  });
+
+  describe('Password reset integration', () => {
+    it('should render a "Forgot password?" link to /forgot-password', () => {
+      const link = query<HTMLAnchorElement>('a[href="/forgot-password"]');
+      expect(link.textContent?.trim()).toBe('Forgot password?');
+    });
+
+    it('should not show the reset success banner without ?reset=success', () => {
+      expect(queryAll('.success-banner').length).toBe(0);
+    });
+  });
+});
+
+describe('LoginComponent with ?reset=success', () => {
+  let authService: jasmine.SpyObj<AuthService>;
+
+  async function open(url: string): Promise<{ harness: RouterTestingHarness; el: HTMLElement }> {
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl(url, LoginComponent);
+    const el = harness.routeNativeElement;
+    if (!el) {
+      throw new Error('Route element not rendered');
+    }
+    return { harness, el };
+  }
+
+  function typeInField(el: HTMLElement, selector: string, value: string): void {
+    const input = el.querySelector<HTMLInputElement>(selector);
+    if (!input) {
+      throw new Error(`Element "${selector}" not found`);
+    }
+    input.value = value;
+    input.dispatchEvent(new Event('input'));
+    input.dispatchEvent(new Event('blur'));
+  }
+
+  async function clickSubmit(harness: RouterTestingHarness, el: HTMLElement): Promise<void> {
+    const button = el.querySelector<HTMLButtonElement>('button[type="submit"]');
+    if (!button) {
+      throw new Error('Submit button not found');
+    }
+    button.click();
+    harness.detectChanges();
+    await harness.fixture.whenStable();
+  }
+
+  beforeEach(() => {
+    authService = jasmine.createSpyObj<AuthService>('AuthService', ['login']);
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([{ path: 'login', component: LoginComponent }]),
+        { provide: AuthService, useValue: authService },
+      ],
+    });
+    spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+  });
+
+  it('should show the password changed status banner', async () => {
+    const harness = await RouterTestingHarness.create();
+
+    await harness.navigateByUrl('/login?reset=success', LoginComponent);
+
+    const banner = harness.routeNativeElement?.querySelector<HTMLElement>('.success-banner');
+    expect(banner?.getAttribute('role')).toBe('status');
+    expect(banner?.textContent?.trim()).toBe('Password changed. Please log in with your new password.');
+  });
+
+  it('should not show the banner when reset has a value other than success', async () => {
+    const { el } = await open('/login?reset=failed');
+
+    expect(el.querySelector('.success-banner')).toBeNull();
+  });
+
+  it('should hide the banner on the next login attempt', async () => {
+    authService.login.and.returnValue(new Subject<LoginResponse>());
+    const { harness, el } = await open('/login?reset=success');
+    typeInField(el, '#username', 'john_doe');
+    typeInField(el, '#password', 'NewPassword1');
+
+    await clickSubmit(harness, el);
+
+    expect(authService.login).toHaveBeenCalledWith('john_doe', 'NewPassword1');
+    expect(el.querySelector('.success-banner')).toBeNull();
+  });
+
+  it('should keep the banner hidden when the next login attempt fails', async () => {
+    authService.login.and.returnValue(throwError(() => new Error('Invalid credentials')));
+    const { harness, el } = await open('/login?reset=success');
+    typeInField(el, '#username', 'john_doe');
+    typeInField(el, '#password', 'wrong-password');
+
+    await clickSubmit(harness, el);
+
+    expect(el.querySelector('.success-banner')).toBeNull();
+    expect(el.querySelector('.error-banner')?.textContent).toContain('Login failed');
   });
 });
