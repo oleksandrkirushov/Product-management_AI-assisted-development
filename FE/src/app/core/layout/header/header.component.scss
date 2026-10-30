@@ -1,11 +1,114 @@
+// Кольори хедера — лише тут, через токени теми (`_material-theme.scss`):
+// --mat-sys-primary = #000000, --mat-sys-on-primary = #ffffff (контраст 21:1).
+// Напівпрозорі відтінки рахуються від `--app-header-fg`, тож колір задається в одному місці.
 .app-header {
+  --app-header-bg: var(--mat-sys-primary);
+  --app-header-fg: var(--mat-sys-on-primary);
+  // Рамка при hover: ~#999 на чорному — 7.4:1 (≥ 3:1 для не-текстових елементів).
+  --app-header-hover-border: color-mix(in srgb, var(--app-header-fg) 60%, transparent);
+  // Підсвітка фону: ~#292929 під білим текстом — ≈ 14.7:1.
+  --app-header-highlight: color-mix(in srgb, var(--app-header-fg) 16%, transparent);
+  --app-header-highlight-strong: color-mix(in srgb, var(--app-header-fg) 24%, transparent);
+
   display: flex;
+  // Reflow на 320px (WCAG 1.4.10): елементи переносяться на новий рядок замість горизонтального скролу.
+  flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
   gap: 0.75rem;
   padding: 0.5rem 1rem;
+  color: var(--app-header-fg);
+  background: var(--app-header-bg);
+  border-bottom: 1px solid var(--app-header-fg);
+}
+
+.app-header__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-right: auto;
+}
+
+// Спільна база для посилань і кнопки: рамка завжди 1px (прозора за замовчуванням),
+// тож hover/active не змінюють розміри й не зсувають layout.
+%app-header-control {
+  padding: 0.25rem 0.75rem;
+  font: inherit;
+  color: inherit;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+
+  &:focus-visible {
+    outline: 2px solid var(--app-header-fg);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.app-header__link {
+  @extend %app-header-control;
+
+  text-decoration: none;
+
+  &:hover {
+    border-color: var(--app-header-hover-border);
+  }
+
+  // Активне посилання відрізняється не лише кольором: суцільна біла рамка, фон і підкреслення.
+  // Модифікатор пишеться повним класом (`&.app-header__link--active`), а не `&--active`, і `:hover`
+  // стоїть перед ним: Angular сприймає `--active:` у селекторі як оголошення CSS-змінної
+  // й підставляє namespace (`--%NS%active:hover`), через що правило перестає спрацьовувати.
+  &.app-header__link--active {
+    border-color: var(--app-header-fg);
+    background-color: var(--app-header-highlight);
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+  }
+
+  &:hover.app-header__link--active {
+    border-color: var(--app-header-fg);
+    background-color: var(--app-header-highlight-strong);
+  }
+
+  // Windows High Contrast: прозора рамка стає видимою, а фон hover примусово скидається.
+  // Тому стани передаються лише системними кольорами рамки; активне ще й підкреслене.
+  @media (forced-colors: active) {
+    border-color: Canvas;
+
+    &:hover {
+      border-color: LinkText;
+    }
+
+    &.app-header__link--active,
+    &:hover.app-header__link--active {
+      border-color: Highlight;
+    }
+  }
 }
 
 .app-header__username {
+  // Довге ім'я обрізається з «…», а не розпирає хедер; повне ім'я — у `title`.
+  min-width: 0;
+  overflow: hidden;
   font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-header__logout {
+  @extend %app-header-control;
+
+  cursor: pointer;
+  background-color: transparent;
+  border-color: var(--app-header-fg);
+
+  &:hover {
+    background-color: var(--app-header-highlight);
+  }
 }

@@ -1,5 +1,7 @@
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 .admin-layout {
@@ -7,7 +9,7 @@
   --mat-sidenav-container-background-color: var(--mat-sys-surface-container-low);
   --mat-sidenav-container-divider-color: var(--mat-sys-outline-variant);
 
-  min-height: calc(100dvh - var(--app-header-height, 2.5rem));
+  flex: 1;
   background: var(--mat-sys-surface);
 }
 

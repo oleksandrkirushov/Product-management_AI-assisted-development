@@ -1,6 +1,25 @@
 @if (currentUser(); as user) {
   <header class="app-header">
-    <span class="app-header__username">{{ user.username }}</span>
+    <nav class="app-header__nav" aria-label="Primary">
+      <a
+        class="app-header__link"
+        routerLink="/products"
+        routerLinkActive="app-header__link--active"
+        [ariaCurrentWhenActive]="true"
+      >
+        Products
+      </a>
+      <a
+        *appHasPermission="'users:read'"
+        class="app-header__link"
+        routerLink="/admin"
+        routerLinkActive="app-header__link--active"
+        [ariaCurrentWhenActive]="true"
+      >
+        Admin
+      </a>
+    </nav>
+    <span class="app-header__username" [title]="user.username">{{ user.username }}</span>
     <button type="button" class="app-header__logout" (click)="logout()">Logout</button>
   </header>
 }

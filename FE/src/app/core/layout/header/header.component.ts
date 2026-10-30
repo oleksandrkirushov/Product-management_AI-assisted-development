@@ -1,9 +1,10 @@
 import { Component, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '@features/services/auth.service';
+import { HasPermission } from '@shared/directives/has-permission/has-permission.directive';
 
 @Component({
-  imports: [],
+  imports: [RouterLink, RouterLinkActive, HasPermission],
   selector: 'app-header',
   styleUrl: './header.component.scss',
   templateUrl: './header.component.html',
