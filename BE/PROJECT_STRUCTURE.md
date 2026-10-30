@@ -1,6 +1,6 @@
-# Структура та зв’язки проєкту
+# Project structure and relationships
 
-## Напрямок залежностей
+## Dependency direction
 
 ```text
 Api ───────────────► Application ─────────► Domain
@@ -8,9 +8,9 @@ Api ───────────────► Application ─────
  └──► Infrastructure ────┘───────────────► Domain
 ```
 
-`Domain` не залежить від інших шарів. `Application` знає Domain і оголошує абстракції. `Infrastructure` реалізує ці абстракції. `Api` є composition root: реєструє всі реалізації, конфігурацію, authentication/authorization та HTTP endpoints.
+`Domain` doesn't depend on other layers. `Application` knows Domain and declares abstractions. `Infrastructure` implements those abstractions. `Api` is the composition root: it registers all implementations, configuration, authentication/authorization and HTTP endpoints.
 
-## Файли
+## Files
 
 ```text
 ProductCatalog.sln
@@ -51,87 +51,87 @@ ProductCatalog.sln
 │       ├── Program.cs
 │       └── appsettings.json
 ├── tests/
-│   ├── ProductCatalog.UnitTests/       # → Application, Domain: сутності, сервіси, PermissionMatcher
-│   └── ProductCatalog.Api.UnitTests/   # → Api: authorization handler/provider, ActiveUserTokenValidator, контролери
-├── .config/dotnet-tools.json           # локальний dotnet-ef для міграцій
+│   ├── ProductCatalog.UnitTests/       # → Application, Domain: entities, services, PermissionMatcher
+│   └── ProductCatalog.Api.UnitTests/   # → Api: authorization handler/provider, ActiveUserTokenValidator, controllers
+├── .config/dotnet-tools.json           # local dotnet-ef for migrations
 ├── Dockerfile
 ├── compose.yaml
 └── .vscode/{launch.json,tasks.json}
 ```
 
 ### Domain
-- `Product` — сутність з інваріантами: непорожня назва, максимальна довжина та додатна ціна.
-- `User` — username, email, ім'я, прізвище, хеш пароля, посилання на роль (`RoleId`), стан `IsActive` (за замовчуванням `true`). Валідує обов'язкові поля та формат email. Стан змінюється лише методами `Activate()`/`Deactivate()`/`ChangePasswordHash(hash)`. `SecurityStamp` генерується в конструкторі й наново при кожній зміні пароля (відкликання JWT).
-- `PasswordResetToken` — одноразовий токен відновлення пароля: `UserId`, `TokenHash` (лише SHA-256 хеш, не сам токен), `CreatedAtUtc`, `ExpiresAtUtc`, `UsedAtUtc?`. `IsUsable(now)` — не використаний і не прострочений; `MarkUsed(now)` — споживає (повторно — `InvalidOperationException`).
-- `Role` — назва та список permissions у форматі `resource:action` (`"*"` — усі права, `"products:*"` — усі дії над ресурсом).
+- `Product` — an entity with invariants: non-empty name, maximum length and a positive price.
+- `User` — username, email, first name, last name, password hash, role reference (`RoleId`), `IsActive` state (`true` by default). Validates required fields and the email format. State changes only via the `Activate()`/`Deactivate()`/`ChangePasswordHash(hash)` methods. `SecurityStamp` is generated in the constructor and regenerated on every password change (JWT revocation).
+- `PasswordResetToken` — a single-use password reset token: `UserId`, `TokenHash` (only the SHA-256 hash, not the token itself), `CreatedAtUtc`, `ExpiresAtUtc`, `UsedAtUtc?`. `IsUsable(now)` — not used and not expired; `MarkUsed(now)` — consumes it (a second time — `InvalidOperationException`).
+- `Role` — a name and a list of permissions in the `resource:action` format (`"*"` — all permissions, `"products:*"` — all actions on a resource).
 
 ### Application
-- `IProductRepository`/`IUserRepository`/`IRoleRepository`/`IUnitOfWork` — порти, які ізолюють бізнес-сценарії від EF Core.
-- `IPasswordHasher` — абстракція хешування; Application не залежить від конкретної бібліотеки.
-- `IPasswordResetTokenRepository`, `IPasswordResetTokenGenerator` (генерація токена + хеш), `IEmailSender` — порти для відновлення пароля.
-- `PasswordResetService` — `RequestResetAsync(email)`: для активного користувача скасовує попередні токени, зберігає хеш нового і надсилає лист з посиланням `{ResetUrl}?token=...`; для невідомого/неактивного email тихо нічого не робить. `ResetAsync(command)`: перевіряє пароль (`PasswordPolicy`), токен (за хешем, `IsUsable`) і активність користувача, далі `ChangePasswordHash` + `MarkUsed` одним `SaveChanges`. Помилки: `InvalidPasswordException` (порожній/короткий пароль), `InvalidPasswordResetTokenException` (невідомий/прострочений/використаний токен, неактивний/видалений користувач). Час — через `TimeProvider`.
-- `PasswordPolicy` — спільне правило мінімальної довжини пароля (8) для реєстрації й reset.
-- `ProductService` — створення, оновлення та читання продуктів.
-- `RegisterUserService` — реєстрація: перевірка пароля, унікальності username/email, призначення ролі `User`. Дублікати сигналізуються `DuplicateUsernameException`/`DuplicateEmailException`.
-- `AuthService` — перевіряє credentials і повертає дані користувача (зокрема `Id` і `SecurityStamp`) з роллю та permissions для видачі JWT. Деактивований користувач отримує `null`, як і при невірному паролі (перевірка після хешування — не розкриває стан акаунту ні відповіддю, ні часом).
-- `UserProfileService` — профіль поточного користувача та список/деталі користувачів (без хешу пароля); `UserProfileResponse` містить `IsActive`.
-- `UserManagementService` — `ActivateAsync`/`DeactivateAsync`/`DeleteAsync(id, actingUsername)` (delete — фізичне видалення). Повертає `false`, якщо користувача немає (→ 404), `true` при успіху, зокрема коли стан уже потрібний (ідемпотентність). Порядок перевірок: not-found → self → ідемпотентність → last-admin, з відмінностями за діями: `ActivateAsync` last-admin не перевіряє (активація не зменшує кількість адмінів); `DeleteAsync` не має кроку ідемпотентності (видалення завжди видаляє) і перевіряє last-admin лише якщо ціль активна (видалення вже деактивованого адміна дозволене). Винятки (`UserManagementExceptions.cs`): `CannotModifySelfException` — дія над власним акаунтом (усі три дії); `LastActiveAdminException` — deactivate/delete останнього **активного** адміна, де "адмін" — будь-яка роль, що дає `users:manage` за `PermissionMatcher` (не назва ролі).
-  - **Відоме обмеження:** перевірка last-admin і `SaveChanges` не в одній транзакції. Якщо два адміни (рівно двоє) одночасно деактивують/видаляють один одного, обидві перевірки побачать двох активних адмінів і система залишиться без жодного. Свідомо не закрито (низький ризик); відновлення вручну — `UPDATE Users SET IsActive = 1 WHERE ...`. Закрити можна serializable-транзакцією через `IUnitOfWork`.
-- `Authorization/PermissionMatcher` — чиста логіка "чи дає набір прав потрібне право" (exact, `*`, `resource:*`), та сама семантика, що й FE `hasPermission`.
-- `Authorization/Permissions` — константи назв прав (`users:read`, `users:manage`).
+- `IProductRepository`/`IUserRepository`/`IRoleRepository`/`IUnitOfWork` — ports that isolate business scenarios from EF Core.
+- `IPasswordHasher` — a hashing abstraction; Application doesn't depend on a specific library.
+- `IPasswordResetTokenRepository`, `IPasswordResetTokenGenerator` (token generation + hash), `IEmailSender` — ports for password reset.
+- `PasswordResetService` — `RequestResetAsync(email)`: for an active user it revokes previous tokens, stores the hash of a new one and sends an email with the link `{ResetUrl}?token=...`; for an unknown/inactive email it silently does nothing. `ResetAsync(command)`: checks the password (`PasswordPolicy`), the token (by hash, `IsUsable`) and that the user is active, then `ChangePasswordHash` + `MarkUsed` in a single `SaveChanges`. Errors: `InvalidPasswordException` (empty/short password), `InvalidPasswordResetTokenException` (unknown/expired/used token, inactive/deleted user). Time — via `TimeProvider`.
+- `PasswordPolicy` — the shared minimum password length rule (8) for registration and reset.
+- `ProductService` — creating, updating and reading products.
+- `RegisterUserService` — registration: password check, username/email uniqueness, assigning the `User` role. Duplicates are signaled with `DuplicateUsernameException`/`DuplicateEmailException`.
+- `AuthService` — verifies credentials and returns the user data (including `Id` and `SecurityStamp`) with the role and permissions for issuing a JWT. A deactivated user gets `null`, same as with a wrong password (the check runs after hashing — it reveals the account state neither by the response nor by timing).
+- `UserProfileService` — the current user's profile and the list/details of users (without the password hash); `UserProfileResponse` contains `IsActive`.
+- `UserManagementService` — `ActivateAsync`/`DeactivateAsync`/`DeleteAsync(id, actingUsername)` (delete is a physical deletion). Returns `false` if the user doesn't exist (→ 404), `true` on success, including when the state is already the desired one (idempotency). Check order: not-found → self → idempotency → last-admin, with per-action differences: `ActivateAsync` doesn't check last-admin (activation doesn't reduce the number of admins); `DeleteAsync` has no idempotency step (deletion always deletes) and checks last-admin only if the target is active (deleting an already deactivated admin is allowed). Exceptions (`UserManagementExceptions.cs`): `CannotModifySelfException` — an action on one's own account (all three actions); `LastActiveAdminException` — deactivating/deleting the last **active** admin, where "admin" is any role that grants `users:manage` according to `PermissionMatcher` (not the role name).
+  - **Known limitation:** the last-admin check and `SaveChanges` are not in one transaction. If two admins (exactly two) deactivate/delete each other at the same time, both checks will see two active admins and the system will be left with none. Deliberately not addressed (low risk); manual recovery — `UPDATE Users SET IsActive = 1 WHERE ...`. It can be closed with a serializable transaction via `IUnitOfWork`.
+- `Authorization/PermissionMatcher` — pure logic for "does a set of permissions grant the required permission" (exact, `*`, `resource:*`), the same semantics as the FE `hasPermission`.
+- `Authorization/Permissions` — permission name constants (`users:read`, `users:manage`).
 
 ### Infrastructure
-- `AppDbContext` — EF Core mapping і Unit of Work: унікальні індекси на `Username`, `Email`, `Role.Name`; FK `User.RoleId → Role.Id`; `Role.Permissions` зберігається як JSON-колонка; таблиця `PasswordResetTokens` з унікальним індексом на `TokenHash` і FK на `Users` (cascade delete).
-- `ProductRepository`/`UserRepository`/`RoleRepository` — SQL Server реалізації; читання через `AsNoTracking`. `UserRepository` також має `CountActiveByRoleIdsAsync` (для last-admin) і `Remove`.
-- `Persistence/Migrations` — EF Core міграції. Схема змінюється **лише** міграціями (`dotnet ef migrations add ...`), `EnsureCreated` не використовується.
-  - `InitialSchema` — таблиці `Users`/`Roles` поверх уже наявної `Products`.
-  - `AddUserIsActive` — стовпець `Users.IsActive` (`bit`, default `1`, тож наявні користувачі лишаються активними).
-  - `AddPasswordReset` — стовпець `Users.SecurityStamp` (`nvarchar(64)`, для наявних рядків default `NEWID()`) і таблиця `PasswordResetTokens`.
-- `BCryptPasswordHasher` — реалізація `IPasswordHasher` через BCrypt.Net-Next.
-- `PasswordResetTokenGenerator` — 32 байти `RandomNumberGenerator` у base64url; хеш — SHA-256 у hex (64 символи).
-- `SmtpEmailSender` + `SmtpOptions` — відправка листів через `System.Net.Mail.SmtpClient`; секція `Smtp` читається й валідується в `AddInfrastructure` (fail-fast). Для розробки — Mailpit з `compose.yaml`.
+- `AppDbContext` — EF Core mapping and Unit of Work: unique indexes on `Username`, `Email`, `Role.Name`; FK `User.RoleId → Role.Id`; `Role.Permissions` is stored as a JSON column; the `PasswordResetTokens` table with a unique index on `TokenHash` and an FK to `Users` (cascade delete).
+- `ProductRepository`/`UserRepository`/`RoleRepository` — SQL Server implementations; reads via `AsNoTracking`. `UserRepository` also has `CountActiveByRoleIdsAsync` (for last-admin) and `Remove`.
+- `Persistence/Migrations` — EF Core migrations. The schema changes **only** through migrations (`dotnet ef migrations add ...`), `EnsureCreated` is not used.
+  - `InitialSchema` — `Users`/`Roles` tables on top of the already existing `Products`.
+  - `AddUserIsActive` — the `Users.IsActive` column (`bit`, default `1`, so existing users stay active).
+  - `AddPasswordReset` — the `Users.SecurityStamp` column (`nvarchar(64)`, default `NEWID()` for existing rows) and the `PasswordResetTokens` table.
+- `BCryptPasswordHasher` — an `IPasswordHasher` implementation via BCrypt.Net-Next.
+- `PasswordResetTokenGenerator` — 32 bytes from `RandomNumberGenerator` in base64url; the hash is SHA-256 in hex (64 characters).
+- `SmtpEmailSender` + `SmtpOptions` — sending emails via `System.Net.Mail.SmtpClient`; the `Smtp` section is read and validated in `AddInfrastructure` (fail-fast). For development — Mailpit from `compose.yaml`.
 
 ### Api
-- `AuthController` — `POST /api/auth/login` (видає JWT з claims `uid` — Id користувача, `sst` — security stamp, `Name`, `Email`, `Role` і `permissions` — JSON-масив прав ролі) та `POST /api/auth/register` (публічні). Логін деактивованого користувача — 401 з тим самим повідомленням, що й при невірному паролі.
-  - `POST /api/auth/forgot-password` — завжди `202 { message }` з однаковим текстом (не розкриває, чи існує email), зокрема й при збої відправки листа (помилка логується через `ILogger`, без адреси; `OperationCanceledException` не перехоплюється); `400` — невалідний email.
-  - `POST /api/auth/reset-password` — `204`; `400 { message }` для невалідного/простроченого/використаного токена (`InvalidPasswordResetTokenException`) або відсутнього/короткого пароля (`InvalidPasswordException`).
-  - Обидва — `[AllowAnonymous]` + `[EnableRateLimiting("password-reset")]`: fixed window 5 запитів/хв на IP (спільний для двох endpoint-ів), далі `429`.
+- `AuthController` — `POST /api/auth/login` (issues a JWT with the claims `uid` — the user Id, `sst` — security stamp, `Name`, `Email`, `Role` and `permissions` — a JSON array of the role's permissions) and `POST /api/auth/register` (public). Login of a deactivated user — 401 with the same message as for a wrong password.
+  - `POST /api/auth/forgot-password` — always `202 { message }` with the same text (doesn't reveal whether the email exists), including when sending the email fails (the error is logged via `ILogger`, without the address; `OperationCanceledException` is not caught); `400` — invalid email.
+  - `POST /api/auth/reset-password` — `204`; `400 { message }` for an invalid/expired/used token (`InvalidPasswordResetTokenException`) or a missing/short password (`InvalidPasswordException`).
+  - Both — `[AllowAnonymous]` + `[EnableRateLimiting("password-reset")]`: fixed window of 5 requests/min per IP (shared between the two endpoints), then `429`.
 - `UsersController`:
 
-  | Запит | Право | Успіх | Помилки |
+  | Request | Permission | Success | Errors |
   |---|---|---|---|
-  | `GET /api/users/me` | будь-який чинний JWT | 200 (`UserProfileResponse` з `isActive`) | 401, 404 |
-  | `GET /api/users` | `users:read` | 200 (масив, у кожного `isActive`) | 401, 403 |
-  | `GET /api/users/{id}` | `users:read` | 200 (з `isActive`) | 401, 403, 404 |
+  | `GET /api/users/me` | any valid JWT | 200 (`UserProfileResponse` with `isActive`) | 401, 404 |
+  | `GET /api/users` | `users:read` | 200 (array, each with `isActive`) | 401, 403 |
+  | `GET /api/users/{id}` | `users:read` | 200 (with `isActive`) | 401, 403, 404 |
   | `PATCH /api/users/{id}/activate` | `users:manage` | 204 | 400, 401, 403, 404 |
   | `PATCH /api/users/{id}/deactivate` | `users:manage` | 204 | 400, 401, 403, 404 |
   | `DELETE /api/users/{id}` | `users:manage` | 204 | 400, 401, 403, 404 |
 
-  Виконавець дії — `User.Identity.Name` (порожній → 401). `false` із `UserManagementService` → 404; `CannotModifySelfException`/`LastActiveAdminException` → 400 з тілом `{ "message": string }`.
-- `ProductsController` — `GET` для будь-якого валідного JWT; `POST`/`PUT` поки вимагають роль `Admin` (legacy, ще не мігровано на permissions).
-- `Authentication/ActiveUserTokenValidator` — негайне відкликання доступу. JWT stateless і живе до `ExpirationMinutes`, тому `JwtBearerEvents.OnTokenValidated` у `Program.cs` для кожного автентифікованого запиту викликає `IsAllowedAsync`: шукає користувача за **Id** з claim `uid` (не за username — ім'я після видалення можна зареєструвати знову) і вимагає `IsActive` та точний (Ordinal) збіг `Username` з claim `Name` і `SecurityStamp` з claim `sst` (зміна пароля відкликає всі видані раніше токени; токен без `sst` відхиляється). Інакше `context.Fail(...)` → 401 на **будь-якому** `[Authorize]`-endpoint (Users, Products, `/me`). Наслідки: деактивований/видалений користувач втрачає доступ одразу; токени, видані до появи `uid`, отримують 401 (разовий перелогін). Ціна — один запит до БД на автентифікований запит. Застарілий `permissions`-claim після зміни прав ролі цим не закривається (ролі поки не редагуються).
-- `Authorization/` — permission-based авторизація: `[Authorize(Policy = Permissions.X)]` → `PermissionPolicyProvider` будує політику для будь-якої назви з `:` → `PermissionAuthorizationHandler` перевіряє claim `permissions` через `PermissionMatcher`. Роль при цьому не враховується.
-- `Program.cs` — composition root; при старті застосовує міграції (`MigrateAsync`) і сідить ролі `Admin` (`["*"]`), `User` (`["products:read"]`) та admin-користувача (з конфігурації `AdminSeed`) — останнього лише якщо таблиця `Users` порожня (перший запуск); інакше сід користувача пропускається й нікого не змінює. Читає й валідує секцію `PasswordReset` (fail-fast) і реєструє `PasswordResetOptions`; налаштовує rate limiter. Порядок middleware: Swagger → CORS → RateLimiter → Authentication → Authorization → Controllers.
+  The acting user is `User.Identity.Name` (empty → 401). `false` from `UserManagementService` → 404; `CannotModifySelfException`/`LastActiveAdminException` → 400 with the body `{ "message": string }`.
+- `ProductsController` — `GET` for any valid JWT; `POST`/`PUT` still require the `Admin` role (legacy, not yet migrated to permissions).
+- `Authentication/ActiveUserTokenValidator` — immediate access revocation. A JWT is stateless and lives until `ExpirationMinutes`, so `JwtBearerEvents.OnTokenValidated` in `Program.cs` calls `IsAllowedAsync` for every authenticated request: it looks up the user by the **Id** from the `uid` claim (not by username — after deletion the name can be registered again) and requires `IsActive` and an exact (Ordinal) match of `Username` with the `Name` claim and of `SecurityStamp` with the `sst` claim (a password change revokes all previously issued tokens; a token without `sst` is rejected). Otherwise `context.Fail(...)` → 401 on **any** `[Authorize]` endpoint (Users, Products, `/me`). Consequences: a deactivated/deleted user loses access immediately; tokens issued before `uid` existed get 401 (a one-time re-login). The cost is one DB query per authenticated request. A stale `permissions` claim after a change to the role's permissions isn't covered by this (roles aren't editable yet).
+- `Authorization/` — permission-based authorization: `[Authorize(Policy = Permissions.X)]` → `PermissionPolicyProvider` builds a policy for any name containing `:` → `PermissionAuthorizationHandler` checks the `permissions` claim via `PermissionMatcher`. The role is not taken into account.
+- `Program.cs` — the composition root; on startup it applies migrations (`MigrateAsync`) and seeds the roles `Admin` (`["*"]`), `User` (`["products:read"]`) and the admin user (from the `AdminSeed` configuration) — the latter only if the `Users` table is empty (first run); otherwise the user seed is skipped and changes nothing. It reads and validates the `PasswordReset` section (fail-fast) and registers `PasswordResetOptions`; configures the rate limiter. Middleware order: Swagger → CORS → RateLimiter → Authentication → Authorization → Controllers.
 
-### Інфраструктура запуску
-- `Dockerfile` — multi-stage build: SDK компілює, менший ASP.NET runtime запускає. Нові тест-проєкти треба додавати в `COPY` перед `dotnet restore`.
-- `backups/` — бекапи Docker-тому SQL Server (`sqlserver-volume-<yyyyMMdd-HHmmss>.tar.gz`), обов'язкові перед `docker compose up --build api` (застосовує міграції). Виключено з git (`.gitignore`) і з Docker build context (`.dockerignore`). Процедура — `.claude/skills/dotnet-clean-architecture/references/configuration-docker.md`.
-- `compose.yaml` — API + SQL Server + Mailpit (SMTP `1025`, UI `8025`), healthcheck, мережа, volume для збереження даних і environment overrides.
+### Runtime infrastructure
+- `Dockerfile` — multi-stage build: the SDK compiles, the smaller ASP.NET runtime runs. New test projects must be added to `COPY` before `dotnet restore`.
+- `backups/` — backups of the SQL Server Docker volume (`sqlserver-volume-<yyyyMMdd-HHmmss>.tar.gz`), mandatory before `docker compose up --build api` (which applies migrations). Excluded from git (`.gitignore`) and from the Docker build context (`.dockerignore`). Procedure — `.claude/skills/dotnet-clean-architecture/references/configuration-docker.md`.
+- `compose.yaml` — API + SQL Server + Mailpit (SMTP `1025`, UI `8025`), healthcheck, network, a volume for persisting data and environment overrides.
 
-## Потік запиту
+## Request flow
 
-Будь-який `[Authorize]`-запит → JWT authentication (підпис, issuer, audience, строк) → `OnTokenValidated` → `ActiveUserTokenValidator` (`IUserRepository.FindByIdAsync(uid)`, `IsActive`, збіг `Username` і `SecurityStamp`) → далі authorization. Неактивний/видалений користувач — 401 ще до авторизації.
+Any `[Authorize]` request → JWT authentication (signature, issuer, audience, lifetime) → `OnTokenValidated` → `ActiveUserTokenValidator` (`IUserRepository.FindByIdAsync(uid)`, `IsActive`, matching `Username` and `SecurityStamp`) → then authorization. An inactive/deleted user gets 401 before authorization.
 
-`POST /api/auth/login` → `AuthController` → `AuthService` → `IUserRepository`/`IRoleRepository` + `IPasswordHasher` → JWT з роллю та permissions.
+`POST /api/auth/login` → `AuthController` → `AuthService` → `IUserRepository`/`IRoleRepository` + `IPasswordHasher` → JWT with role and permissions.
 
-`POST /api/auth/forgot-password` → rate limiter → `AuthController` → `PasswordResetService.RequestResetAsync` → `IUserRepository.FindByEmailAsync` → (активний) скасування старих токенів + новий `PasswordResetToken` → `SaveChanges` → `IEmailSender` (з `CancellationToken.None`, бо токен уже закомічено; збій перехоплює контролер) → 202.
+`POST /api/auth/forgot-password` → rate limiter → `AuthController` → `PasswordResetService.RequestResetAsync` → `IUserRepository.FindByEmailAsync` → (active) revoke old tokens + new `PasswordResetToken` → `SaveChanges` → `IEmailSender` (with `CancellationToken.None`, because the token is already committed; a failure is caught by the controller) → 202.
 
-`POST /api/auth/reset-password` → rate limiter → `AuthController` → `PasswordResetService.ResetAsync` → `IPasswordResetTokenRepository.FindByHashAsync` → `User.ChangePasswordHash` (новий `SecurityStamp`) + `MarkUsed` → `SaveChanges` → 204.
+`POST /api/auth/reset-password` → rate limiter → `AuthController` → `PasswordResetService.ResetAsync` → `IPasswordResetTokenRepository.FindByHashAsync` → `User.ChangePasswordHash` (new `SecurityStamp`) + `MarkUsed` → `SaveChanges` → 204.
 
-`GET /api/users` → JWT authentication → `PermissionPolicyProvider` (політика `users:read`) → `PermissionAuthorizationHandler` (claim `permissions`) → `UsersController` → `UserProfileService` → `UserRepository`/`RoleRepository` → SQL Server. Без права — 403, без токена — 401.
+`GET /api/users` → JWT authentication → `PermissionPolicyProvider` (`users:read` policy) → `PermissionAuthorizationHandler` (`permissions` claim) → `UsersController` → `UserProfileService` → `UserRepository`/`RoleRepository` → SQL Server. Without the permission — 403, without a token — 401.
 
-`PATCH /api/users/{id}/deactivate` → JWT authentication + `ActiveUserTokenValidator` → політика `users:manage` → `UsersController` → `UserManagementService` (not-found → self → ідемпотентність → last-admin) → `User.Deactivate()` → `IUserRepository.Update` + `IUnitOfWork.SaveChangesAsync`. Activate і Delete (`IUserRepository.Remove`) — той самий шлях.
+`PATCH /api/users/{id}/deactivate` → JWT authentication + `ActiveUserTokenValidator` → `users:manage` policy → `UsersController` → `UserManagementService` (not-found → self → idempotency → last-admin) → `User.Deactivate()` → `IUserRepository.Update` + `IUnitOfWork.SaveChangesAsync`. Activate and Delete (`IUserRepository.Remove`) follow the same path.
 
 `POST /api/products` → JWT authentication → role authorization (`Admin`) → `ProductsController` → `ProductService` → `Product` → `IProductRepository`/`IUnitOfWork` → `ProductRepository`/`AppDbContext` → SQL Server.
 
-`GET /api/products/{id}` проходить той самий шлях, але repository читає сутність з `AsNoTracking`, а service повертає DTO, не exposing EF entity напряму.
+`GET /api/products/{id}` follows the same path, but the repository reads the entity with `AsNoTracking`, and the service returns a DTO without exposing the EF entity directly.

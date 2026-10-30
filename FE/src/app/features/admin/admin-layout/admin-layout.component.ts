@@ -5,19 +5,19 @@ import { MatListItem, MatListItemIcon, MatListItemTitle, MatNavList } from '@ang
 import { MatSidenav, MatSidenavContainer, MatSidenavContent } from '@angular/material/sidenav';
 
 /**
- * Іконки, наявні в self-hosted підмножині Material Symbols (`public/fonts/`, список — у `src/styles.scss`).
- * Нову іконку додавай сюди лише після оновлення шрифту, інакше замість неї буде текст.
+ * Icons available in the self-hosted Material Symbols subset (`public/fonts/`, list in `src/styles.scss`).
+ * Add a new icon here only after updating the font, otherwise text will be shown instead of it.
  */
 type AdminNavIcon = 'block' | 'check_circle' | 'close' | 'delete' | 'group' | 'more_vert';
 
-/** Пункт бічної навігації адмінки. UI-конфігурація layout-у, а не доменна модель. */
+/** Admin sidebar navigation item. UI configuration of the layout, not a domain model. */
 interface AdminNavItem {
   readonly label: string;
   readonly path: string;
   readonly icon: AdminNavIcon;
 }
 
-/** Нова підсторінка адмінки додається одним елементом цього масиву. */
+/** A new admin subpage is added as a single element of this array. */
 const ADMIN_NAV_ITEMS: readonly AdminNavItem[] = [
   { label: 'Users', path: '/admin/users', icon: 'group' },
 ];

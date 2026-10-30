@@ -1,18 +1,17 @@
-// Кольори
+// Colors
 $color-inverse-text: #ffffff;
 $color-inverse-bg: #000000;
 $color-border: #d0d7de;
 $color-error: #b42318;
 $color-focus: #0969da;
 
-// Відступи
+// Spacing
 $space-sm: 0.75rem;
 $space-md: 1rem;
 $space-lg: 1.5rem;
 
 $radius: 4px;
 
-// Білий текст на чорному фоні — хедер сторінки та кнопки
 @mixin inverse-colors {
   color: $color-inverse-text;
   background: $color-inverse-bg;

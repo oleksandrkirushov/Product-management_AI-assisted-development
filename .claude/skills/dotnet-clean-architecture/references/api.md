@@ -2,7 +2,7 @@
 
 ## Controllers — `Controllers/<Aggregate>sController.cs`
 
-Primary constructor з Application-сервісом, авторизація на рівні контролера й окремо на write-операціях:
+Primary constructor with an Application service, authorization at the controller level and separately on write operations:
 
 ```csharp
 namespace ProductCatalog.Api.Controllers;
@@ -55,22 +55,22 @@ public sealed class ProductsController(ProductService productService) : Controll
 }
 ```
 
-### Правила контролерів
+### Controller rules
 
-- `[ApiController] [Authorize] [Route("api/<plural-aggregate>")]` на класі; `[AllowAnonymous]` явно на публічних endpoint (напр. login, register).
-- Захищені дії — `[Authorize(Policy = Permissions.X)]` (константи в `Application/Authorization/Permissions.cs`,
-  напр. `Permissions.UsersRead`, `Permissions.UsersManage`), а не `[Authorize(Roles = "Admin")]`: роль у токені
-  може розійтися з її permissions, тож авторизація має перевіряти саме permission. Нову permission-назву додавай
-  константою в `Permissions` (формат `resource:action`); окремо реєструвати політику не треба — її будує
-  `PermissionPolicyProvider` для будь-якої назви з `:`. Не змішуй `Roles` і `Policy` в одному контролері.
-  Приклад вище з `Roles = "Admin"` у `ProductsController` — legacy, поки не мігрований на permissions.
-- `[ProducesResponseType<T>(StatusCodes.Status200OK)]` — **generic**-синтаксис для успішної відповіді; кожен можливий error-статус — окремий `[ProducesResponseType(StatusCodes.StatusXxx)]` без generic.
-- `[HttpGet("{id:guid}")]` — route constraint `:guid`, не просто `{id}`.
-- `Create` → `CreatedAtAction(nameof(GetById), new { id = ... }, dto)` (201 + `Location` header), не просто `Ok()`.
-- Контролер повертає DTO з Application напряму (`ProductDto`) — **не** мапить у окремий Api-рівневий response-тип. Api-шар визначає лише **вхідні** контракти (`*Request`).
-- Контролер не містить бізнес-логіки — лише виклик сервісу й переклад `null`/результату в `IActionResult`.
+- `[ApiController] [Authorize] [Route("api/<plural-aggregate>")]` on the class; `[AllowAnonymous]` explicitly on public endpoints (e.g. login, register).
+- Protected actions use `[Authorize(Policy = Permissions.X)]` (constants in `Application/Authorization/Permissions.cs`,
+  e.g. `Permissions.UsersRead`, `Permissions.UsersManage`), not `[Authorize(Roles = "Admin")]`: the role in the token
+  can diverge from its permissions, so authorization must check the permission itself. Add a new permission name
+  as a constant in `Permissions` (format `resource:action`); there's no need to register the policy separately — it's built by
+  `PermissionPolicyProvider` for any name containing `:`. Don't mix `Roles` and `Policy` in one controller.
+  The example above with `Roles = "Admin"` in `ProductsController` is legacy, not yet migrated to permissions.
+- `[ProducesResponseType<T>(StatusCodes.Status200OK)]` — **generic** syntax for the successful response; each possible error status gets a separate non-generic `[ProducesResponseType(StatusCodes.StatusXxx)]`.
+- `[HttpGet("{id:guid}")]` — the `:guid` route constraint, not just `{id}`.
+- `Create` → `CreatedAtAction(nameof(GetById), new { id = ... }, dto)` (201 + `Location` header), not just `Ok()`.
+- The controller returns the Application DTO directly (`ProductDto`) — it does **not** map it to a separate Api-level response type. The Api layer defines only **input** contracts (`*Request`).
+- The controller contains no business logic — only the service call and translating `null`/the result into an `IActionResult`.
 
-## Request-контракти — `Contracts/<Action><Aggregate>Request.cs`
+## Request contracts — `Contracts/<Action><Aggregate>Request.cs`
 
 ```csharp
 namespace ProductCatalog.Api.Contracts;
@@ -81,8 +81,8 @@ public sealed record CreateProductRequest(
 );
 ```
 
-- `sealed record` (positional), DataAnnotations (`[Required]`, `[StringLength]`, `[Range]`) — валідація формату запиту на межі Api. Доменна валідація (бізнес-правила) лишається в Domain-конструкторі/методах — не дублюй бізнес-логіку в DataAnnotations понад формат.
-- Один файл — один контракт, в `Api/Contracts/`.
+- `sealed record` (positional), DataAnnotations (`[Required]`, `[StringLength]`, `[Range]`) — request format validation at the Api boundary. Domain validation (business rules) stays in the Domain constructor/methods — don't duplicate business logic in DataAnnotations beyond format.
+- One file — one contract, in `Api/Contracts/`.
 
 ## Options — `Options/<Name>Options.cs`
 
@@ -100,33 +100,33 @@ public sealed class JwtOptions
 }
 ```
 
-`const string SectionName` на класі — стандартний спосіб зв'язати Options-клас із секцією `appsettings.json` при реєстрації (`services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName))`).
+A `const string SectionName` on the class is the standard way to bind an Options class to an `appsettings.json` section during registration (`services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName))`).
 
-## Program.cs — конвенції цього проєкту
+## Program.cs — this project's conventions
 
-- Top-level statements, мінімум коду поза `builder`/`app`.
-- Порядок: `AddControllers()` → `AddApplication()` → `AddInfrastructure(configuration)` → CORS policy → ручне зчитування і **валідація** `JwtOptions` (fail-fast ще до `builder.Build()`, якщо ключ закороткий) → `AddAuthentication().AddJwtBearer(...)` → `AddAuthorization()` → `AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>()` + `AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>()` → Swagger (`AddEndpointsApiExplorer`, `AddSwaggerGen` з Bearer security scheme).
+- Top-level statements, minimal code outside `builder`/`app`.
+- Order: `AddControllers()` → `AddApplication()` → `AddInfrastructure(configuration)` → CORS policy → manual reading and **validation** of `JwtOptions` (fail-fast before `builder.Build()` if the key is too short) → `AddAuthentication().AddJwtBearer(...)` → `AddAuthorization()` → `AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>()` + `AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>()` → Swagger (`AddEndpointsApiExplorer`, `AddSwaggerGen` with a Bearer security scheme).
 - Pipeline: `UseSwagger → UseSwaggerUI → UseCors → UseAuthentication → UseAuthorization → MapControllers`.
-- `JwtBearerEvents.OnTokenValidated` викликає `Authentication/ActiveUserTokenValidator.IsAllowedAsync` (бере
-  `IUserRepository` зі scope запиту): користувач шукається за Id з claim `uid` (його додає `AuthController.Login`),
-  має бути `IsActive` і мати той самий `Username`, інакше `context.Fail(...)` → 401 на будь-якому `[Authorize]`-endpoint.
-  Перевірку активності користувача не дублюй у сервісах/контролерах і не роби її authorization requirement'ом
-  (endpoint з явною policy її обійде). Логіку тримай у статичному класі в `Authentication/`, щоб тестувати без HTTP.
-- `/health` endpoint з `AllowAnonymous()`.
-- Локальна функція `ApplyMigrationsAsync` з retry-loop (10 спроб, затримка) викликає `dbContext.Database.MigrateAsync()` перед `RunAsync()` — схема БД керується EF Core migrations, `EnsureCreatedAsync()` не використовується.
-- `public partial class Program;` наприкінці файлу — залишено для майбутньої інтеграції `WebApplicationFactory` в тестах (інтеграційних тестів ще немає).
-- CORS: policy `"AllowFrontend"` → `http://localhost:4200`, `AllowAnyMethod()/AllowAnyHeader()/AllowCredentials()`. Якщо FE отримає інший origin (прод) — додай його через конфігурацію, не хардкодь другий рядок policy.
+- `JwtBearerEvents.OnTokenValidated` calls `Authentication/ActiveUserTokenValidator.IsAllowedAsync` (takes
+  `IUserRepository` from the request scope): the user is looked up by the Id from the `uid` claim (added by `AuthController.Login`),
+  must be `IsActive` and have the same `Username`, otherwise `context.Fail(...)` → 401 on any `[Authorize]` endpoint.
+  Don't duplicate the user activity check in services/controllers and don't make it an authorization requirement
+  (an endpoint with an explicit policy would bypass it). Keep the logic in a static class in `Authentication/` so it can be tested without HTTP.
+- `/health` endpoint with `AllowAnonymous()`.
+- The local function `ApplyMigrationsAsync` with a retry loop (10 attempts, delay) calls `dbContext.Database.MigrateAsync()` before `RunAsync()` — the DB schema is managed by EF Core migrations, `EnsureCreatedAsync()` is not used.
+- `public partial class Program;` at the end of the file — kept for future `WebApplicationFactory` integration in tests (there are no integration tests yet).
+- CORS: policy `"AllowFrontend"` → `http://localhost:4200`, `AllowAnyMethod()/AllowAnyHeader()/AllowCredentials()`. If the FE gets another origin (prod) — add it via configuration, don't hard-code a second policy line.
 
-## Авторизація та claims у JWT
+## Authorization and JWT claims
 
-- `AuthController.Login` → `AuthService.AuthenticateAsync`: користувач шукається в БД (`IUserRepository.FindByUsernameAsync`), пароль перевіряється через порт `IPasswordHasher` (реалізація — `Infrastructure/Security/BCryptPasswordHasher`, BCrypt.Net-Next), роль і її permissions читаються з БД (`IRoleRepository`). Паролі зберігаються лише як BCrypt-хеш; порівнювати пароль напряму чи з конфігурацією не можна.
-- Невідомий username, невірний пароль і деактивований користувач (`!IsActive`, перевіряється **після** верифікації пароля, щоб не відрізнятись за часом) → `AuthService` повертає `null` → 401 з тим самим тілом `{ "message": "Invalid username or password." }`, щоб не розкривати стан акаунту.
-- JWT генерується вручну через `JwtSecurityTokenHandler` (HmacSha256, `Jwt:Key`, строк `Jwt:ExpirationMinutes`). Claims:
+- `AuthController.Login` → `AuthService.AuthenticateAsync`: the user is looked up in the DB (`IUserRepository.FindByUsernameAsync`), the password is verified via the `IPasswordHasher` port (implementation — `Infrastructure/Security/BCryptPasswordHasher`, BCrypt.Net-Next), the role and its permissions are read from the DB (`IRoleRepository`). Passwords are stored only as a BCrypt hash; comparing the password directly or against configuration is not allowed.
+- Unknown username, wrong password and a deactivated user (`!IsActive`, checked **after** password verification so as not to differ in timing) → `AuthService` returns `null` → 401 with the same body `{ "message": "Invalid username or password." }`, so as not to reveal the account state.
+- The JWT is generated manually via `JwtSecurityTokenHandler` (HmacSha256, `Jwt:Key`, lifetime `Jwt:ExpirationMinutes`). Claims:
   - `Sub` — username;
-  - `Jti` — новий Guid на кожен токен;
-  - `uid` (`ActiveUserTokenValidator.UserIdClaimType`) — `User.Id`, за ним `OnTokenValidated` перевіряє, що користувач існує й активний;
-  - `ClaimTypes.Name` — username **у тому вигляді, як він збережений у БД** (не як його ввели при логіні — валідатор порівнює Ordinal);
+  - `Jti` — a new Guid for each token;
+  - `uid` (`ActiveUserTokenValidator.UserIdClaimType`) — `User.Id`, used by `OnTokenValidated` to check that the user exists and is active;
+  - `ClaimTypes.Name` — the username **as it is stored in the DB** (not as it was entered at login — the validator compares Ordinal);
   - `ClaimTypes.Email` — email;
-  - `ClaimTypes.Role` — назва ролі з БД;
-  - `permissions` (`PermissionAuthorizationHandler.PermissionsClaimType`) — JSON-масив рядків прав ролі, на ньому працює permission-based авторизація.
-- Новий claim, від якого залежить авторизація, додавай у `Login` і покривай тестом round-trip (`ActiveUserTokenValidatorTests.UserIdClaim_SurvivesJwtRoundTripWithInboundClaimMapping` — приклад), бо JwtBearer за замовчуванням перейменовує частину вхідних claims.
+  - `ClaimTypes.Role` — the role name from the DB;
+  - `permissions` (`PermissionAuthorizationHandler.PermissionsClaimType`) — a JSON array of the role's permission strings; permission-based authorization works on it.
+- Add a new claim that authorization depends on in `Login` and cover it with a round-trip test (`ActiveUserTokenValidatorTests.UserIdClaim_SurvivesJwtRoundTripWithInboundClaimMapping` is an example), because JwtBearer renames some inbound claims by default.

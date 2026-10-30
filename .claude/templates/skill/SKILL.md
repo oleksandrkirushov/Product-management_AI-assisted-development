@@ -1,27 +1,27 @@
 ---
 name: skill-name
-description: Що робить скіл і коли його використовувати. Наприклад — "Створює Angular standalone компонент за конвенціями проєкту. Використовуй, коли потрібно додати новий компонент, сторінку або UI-елемент."
+description: What the skill does and when to use it. For example — "Creates an Angular standalone component following the project conventions. Use when you need to add a new component, page or UI element."
 ---
 
-# Назва скіла
+# Skill name
 
-## Коли використовувати
-- Ситуація 1
-- Ситуація 2
+## When to use
+- Situation 1
+- Situation 2
 
-## Кроки
+## Steps
 1. ...
 2. ...
 3. ...
 
-## Конвенції проєкту
+## Project conventions
 - ...
 
-## Приклад
+## Example
 ```ts
-// приклад результату
+// example result
 ```
 
-## Додаткові матеріали
-- Детальніше: [references/](references/) — читати лише за потреби.
-- Скрипти: [scripts/](scripts/)
+## Additional materials
+- More details: [references/](references/) — read only when needed.
+- Scripts: [scripts/](scripts/)

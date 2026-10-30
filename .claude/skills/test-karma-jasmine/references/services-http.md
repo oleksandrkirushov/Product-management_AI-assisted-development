@@ -1,6 +1,6 @@
-# Сервіси, signals-стори, HTTP, interceptors
+# Services, signal stores, HTTP, interceptors
 
-## API-сервіс з HttpClient
+## API service with HttpClient
 
 ```ts
 @Injectable({ providedIn: 'root' })
@@ -31,13 +31,13 @@ describe('ProductApi', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting()], // порядок важливий: спершу provideHttpClient
+      providers: [provideHttpClient(), provideHttpClientTesting()], // order matters: provideHttpClient first
     });
     api = TestBed.inject(ProductApi);
     httpMock = TestBed.inject(HttpTestingController);
   });
 
-  afterEach(() => httpMock.verify()); // падає, якщо лишились неочікувані / необроблені запити
+  afterEach(() => httpMock.verify()); // fails if unexpected / unhandled requests remain
 
   it('should GET all products', async () => {
     const result = firstValueFrom(api.getAll());
@@ -69,15 +69,15 @@ describe('ProductApi', () => {
 });
 ```
 
-Ключове:
-- `firstValueFrom()` перетворює Observable на Promise — без ручних `subscribe` і `done`.
-- Підписка (або `firstValueFrom`) має відбутися **до** `expectOne` — інакше запит ще не відправлено.
-- Помилки — `flush(body, { status, statusText })`; мережеві збої — `req.error(new ProgressEvent('error'))`.
-- Кілька запитів на один URL — `httpMock.match(url)`; перевірка, що запиту не було, — `httpMock.expectNone(url)`.
+Key points:
+- `firstValueFrom()` turns an Observable into a Promise — no manual `subscribe` and `done`.
+- The subscription (or `firstValueFrom`) must happen **before** `expectOne` — otherwise the request hasn't been sent yet.
+- Errors — `flush(body, { status, statusText })`; network failures — `req.error(new ProgressEvent('error'))`.
+- Several requests to one URL — `httpMock.match(url)`; checking that there was no request — `httpMock.expectNone(url)`.
 
-## Signals-стор із залежністю
+## Signal store with a dependency
 
-Залежність замінюємо шпигуном — тестуємо логіку стору, а не HTTP:
+We replace the dependency with a spy — testing the store logic, not HTTP:
 
 ```ts
 @Injectable({ providedIn: 'root' })
@@ -93,7 +93,7 @@ export class ProductStore {
   load(): void {
     this.api.getAll().subscribe({
       next: (products) => this._products.set(products),
-      error: () => this._error.set('Не вдалося завантажити продукти'),
+      error: () => this._error.set('Failed to load products'),
     });
   }
 }
@@ -135,15 +135,15 @@ describe('ProductStore', () => {
     store.load();
 
     expect(store.products()).toEqual([]);
-    expect(store.error()).toBe('Не вдалося завантажити продукти');
+    expect(store.error()).toBe('Failed to load products');
   });
 });
 ```
 
-- `computed` читається синхронно — `TestBed.tick()` для нього не потрібен.
-- `of(...)` синхронний, тому `await` після `load()` не треба. Для асинхронних відповідей див. [async.md](async.md).
+- `computed` is read synchronously — `TestBed.tick()` isn't needed for it.
+- `of(...)` is synchronous, so no `await` is needed after `load()`. For async responses see [async.md](async.md).
 
-## Функціональний interceptor
+## Functional interceptor
 
 ```ts
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
@@ -171,7 +171,7 @@ describe('authInterceptor', () => {
   afterEach(() => httpMock.verify());
 
   it('should add the Authorization header when a token exists', () => {
-    TestBed.inject(AuthStore).login('abc'); // справжній простий стор замість мока
+    TestBed.inject(AuthStore).login('abc'); // a real simple store instead of a mock
 
     http.get('/api/data').subscribe();
 
@@ -190,4 +190,4 @@ describe('authInterceptor', () => {
 });
 ```
 
-Interceptor тестуємо через справжній `HttpClient` з ним у ланцюжку — так перевіряється реальна поведінка, а не виклик функції з фейковими `req`/`next`.
+We test the interceptor through a real `HttpClient` with it in the chain — this verifies the real behavior rather than calling the function with fake `req`/`next`.

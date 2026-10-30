@@ -1,22 +1,22 @@
-# Тестування (xUnit)
+# Testing (xUnit)
 
-## Проєкти тестів
+## Test projects
 
-| Проєкт | ProjectReference | Що тестує |
+| Project | ProjectReference | What it tests |
 |---|---|---|
-| `BE/tests/ProductCatalog.UnitTests` | лише `Application`, `Domain` (НЕ Infrastructure, НЕ Api) | Domain-валідація, Application-сервіси, чиста логіка (напр. `PermissionMatcher`) |
-| `BE/tests/ProductCatalog.Api.UnitTests` | `Api` | Api-компоненти без HTTP і БД: authorization handlers, policy providers, перевірка атрибутів контролерів через reflection (`[Authorize(Policy = ...)]`) |
+| `BE/tests/ProductCatalog.UnitTests` | only `Application`, `Domain` (NOT Infrastructure, NOT Api) | Domain validation, Application services, pure logic (e.g. `PermissionMatcher`) |
+| `BE/tests/ProductCatalog.Api.UnitTests` | `Api` | Api components without HTTP or DB: authorization handlers, policy providers, checking controller attributes via reflection (`[Authorize(Policy = ...)]`) |
 
-- Обидва — чисті юніт-тести: без БД, без HTTP-пайплайна, без `WebApplicationFactory` — інтеграційних тестів у проєкті зараз немає.
-- Не додавай ProjectReference на `Api`/`Infrastructure` у `ProductCatalog.UnitTests`. Якщо логіку з Api треба протестувати і вона не залежить від ASP.NET-типів — краще винести її в Application; якщо залежить (handler, provider, атрибути) — тест іде в `ProductCatalog.Api.UnitTests`.
-- Новий тест-проєкт додається в `ProductCatalog.sln` і його `.csproj` копіюється в `BE/Dockerfile` перед `dotnet restore ProductCatalog.sln` (інакше restore у Docker впаде).
-- Namespace тестів = ім'я проєкту (`ProductCatalog.UnitTests`, `ProductCatalog.Api.UnitTests`). Один тест-клас на файл, файл названо за класом (`XTests.cs`).
+- Both are pure unit tests: no DB, no HTTP pipeline, no `WebApplicationFactory` — the project currently has no integration tests.
+- Don't add a ProjectReference to `Api`/`Infrastructure` in `ProductCatalog.UnitTests`. If logic from Api needs testing and it doesn't depend on ASP.NET types — better move it to Application; if it does (handler, provider, attributes) — the test goes in `ProductCatalog.Api.UnitTests`.
+- A new test project is added to `ProductCatalog.sln` and its `.csproj` is copied in `BE/Dockerfile` before `dotnet restore ProductCatalog.sln` (otherwise restore in Docker will fail).
+- Test namespace = project name (`ProductCatalog.UnitTests`, `ProductCatalog.Api.UnitTests`). One test class per file, the file is named after the class (`XTests.cs`).
 
-NuGet (однакові версії в обох проєктах): `xunit`, `xunit.runner.visualstudio`, `Microsoft.NET.Test.Sdk`, `coverlet.collector`. У `.csproj` є `<Using Include="Xunit" />` — тому `using Xunit;` в файлах тестів не потрібен.
+NuGet (same versions in both projects): `xunit`, `xunit.runner.visualstudio`, `Microsoft.NET.Test.Sdk`, `coverlet.collector`. The `.csproj` has `<Using Include="Xunit" />` — so `using Xunit;` isn't needed in test files.
 
-Примітка: у `ProductCatalog.Api.UnitTests` ім'я `Options` конфліктує з namespace `ProductCatalog.Api.Options` — для `Microsoft.Extensions.Options.Options.Create(...)` використовуй alias (`using MsOptions = Microsoft.Extensions.Options.Options;`).
+Note: in `ProductCatalog.Api.UnitTests` the name `Options` conflicts with the `ProductCatalog.Api.Options` namespace — for `Microsoft.Extensions.Options.Options.Create(...)` use an alias (`using MsOptions = Microsoft.Extensions.Options.Options;`).
 
-## Приклад — тест на Domain-валідацію
+## Example — a Domain validation test
 
 ```csharp
 namespace ProductCatalog.UnitTests;
@@ -51,9 +51,9 @@ public class ProductTests
 }
 ```
 
-## Приклад — тест на Application-сервіс з мок-репозиторієм
+## Example — an Application service test with a mock repository
 
-У проєкті зараз немає тестів на `ProductService` і немає моканих залежностей — немає підключеної mocking-бібліотеки (Moq/NSubstitute). Якщо додаєш сервіс із репозиторієм, напиши власну легку test-double (ручний клас, що реалізує інтерфейс), а не підключай нову бібліотеку без явного запиту користувача:
+The project currently has no tests for `ProductService` and no mocked dependencies — no mocking library (Moq/NSubstitute) is installed. If you add a service with a repository, write your own lightweight test double (a hand-written class implementing the interface) rather than pulling in a new library without an explicit user request:
 
 ```csharp
 public class ProductServiceTests
@@ -96,11 +96,11 @@ public class ProductServiceTests
 }
 ```
 
-## Правила
+## Rules
 
-- `[Fact]` — один конкретний кейс. `[Theory]` + `[InlineData]` — той самий тест з набором значень (граничні випадки, невалідний вхід).
-- Ім'я тесту: `<Метод>_<Умова>_<Результат>` (напр. `Constructor_WithInvalidName_ThrowsArgumentException`).
-- Тестуй Domain-валідацію напряму через конструктор/методи сутності — не обходь валідацію рефлексією.
-- Тестуй Application-сервіси через реальний конструктор (primary constructor) з ручними test-double реалізаціями портів — не підключай mocking-фреймворк, якщо користувач не попросив явно.
-- Нову сутність чи сервіс, додану в межах задачі, покривай тестами в цьому ж стилі — відсутність тестів на `ProductService`/контролери в поточному коді не привід залишати нову логіку без тестів.
-- Команди запуску — з кореня `BE/`: `dotnet test` (усі тести), `dotnet test --filter "FullyQualifiedName~ProductServiceTests"` (конкретний клас).
+- `[Fact]` — one specific case. `[Theory]` + `[InlineData]` — the same test with a set of values (edge cases, invalid input).
+- Test name: `<Method>_<Condition>_<Result>` (e.g. `Constructor_WithInvalidName_ThrowsArgumentException`).
+- Test Domain validation directly through the entity's constructor/methods — don't bypass validation with reflection.
+- Test Application services through the real constructor (primary constructor) with hand-written test-double implementations of the ports — don't pull in a mocking framework unless the user explicitly asks.
+- Cover a new entity or service added within a task with tests in this same style — the absence of tests for `ProductService`/controllers in the current code is no reason to leave new logic untested.
+- Run commands from the `BE/` root: `dotnet test` (all tests), `dotnet test --filter "FullyQualifiedName~ProductServiceTests"` (a specific class).

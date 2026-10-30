@@ -1,83 +1,83 @@
 ---
 name: dotnet-clean-architecture
-description: Конвенції Clean Architecture цього бекенд-проєкту (ASP.NET Core 10, BE/). Шари Domain/Application/Infrastructure/Api, primary constructors для DI, Commands/DTO, EF Core, JWT auth, контролери. Використовуй щоразу, коли пишеш, змінюєш або рев'юїш C#-код у BE/.
+description: Clean Architecture conventions of this backend project (ASP.NET Core 10, BE/). Domain/Application/Infrastructure/Api layers, primary constructors for DI, Commands/DTOs, EF Core, JWT auth, controllers. Use every time you write, change or review C# code in BE/.
 ---
 
-# .NET Clean Architecture (цей проєкт)
+# .NET Clean Architecture (this project)
 
-## Перед початком роботи
-1. Перевір `BE/ProductCatalog.sln` і структуру `BE/src/` — чотири проєкти-шари + `BE/tests/ProductCatalog.UnitTests` і `BE/tests/ProductCatalog.Api.UnitTests`.
-2. Подивись на вже написаний код у відповідному шарі (`Product.cs`, `ProductService.cs`, `ProductsController.cs`, `AppDbContext.cs`) — **нова сутність повторює ці самі паттерни**, це не загальні рекомендації, а те, як конкретно зроблено тут.
-3. Не став нові NuGet-пакети без явного запиту.
+## Before you start
+1. Check `BE/ProductCatalog.sln` and the structure of `BE/src/` — four layer projects + `BE/tests/ProductCatalog.UnitTests` and `BE/tests/ProductCatalog.Api.UnitTests`.
+2. Look at the code already written in the relevant layer (`Product.cs`, `ProductService.cs`, `ProductsController.cs`, `AppDbContext.cs`) — **a new entity follows these same patterns**; these are not general recommendations but how things are concretely done here.
+3. Don't install new NuGet packages without an explicit request.
 
-## Шари та залежності → [references/project-structure.md](references/project-structure.md)
+## Layers and dependencies → [references/project-structure.md](references/project-structure.md)
 ```
 Domain  ←  Application  ←  Infrastructure  ←  Api
               ↑___________________|
 ```
-- `Domain` — нуль залежностей (ні на інші проєкти, ні на NuGet).
+- `Domain` — zero dependencies (neither on other projects nor on NuGet).
 - `Application` → `Domain`.
 - `Infrastructure` → `Application`, `Domain`.
 - `Api` → `Application`, `Infrastructure`.
-- `tests/ProductCatalog.UnitTests` → `Application`, `Domain` (без Infrastructure/Api — юніт-тести логіки, не інтеграційні).
-- `tests/ProductCatalog.Api.UnitTests` → `Api` — юніт-тести Api-компонентів без HTTP/БД (authorization handlers, policy providers, перевірка атрибутів контролерів через reflection).
-- Залежність лише в один бік. Domain і Application нічого не знають про EF Core, HTTP чи Api-контракти.
+- `tests/ProductCatalog.UnitTests` → `Application`, `Domain` (no Infrastructure/Api — unit tests of logic, not integration tests).
+- `tests/ProductCatalog.Api.UnitTests` → `Api` — unit tests of Api components without HTTP/DB (authorization handlers, policy providers, checking controller attributes via reflection).
+- Dependencies go in one direction only. Domain and Application know nothing about EF Core, HTTP or Api contracts.
 
 ## Domain → [references/domain.md](references/domain.md)
-- `sealed class`, приватний безпараметричний конструктор (для EF Core), публічний конструктор з доменною валідацією (guard clauses → `ArgumentException`/`ArgumentOutOfRangeException`).
-- Властивості `{ get; private set; }` — мутація лише через явні методи (`Update(...)`), що повторюють ту саму валідацію.
-- Жодних посилань на Application/Infrastructure/EF Core/ASP.NET з Domain.
+- `sealed class`, private parameterless constructor (for EF Core), public constructor with domain validation (guard clauses → `ArgumentException`/`ArgumentOutOfRangeException`).
+- `{ get; private set; }` properties — mutation only through explicit methods (`Update(...)`) that repeat the same validation.
+- No references from Domain to Application/Infrastructure/EF Core/ASP.NET.
 
 ## Application → [references/application.md](references/application.md)
-- Сервіс = `sealed class` з **primary constructor** DI: `public sealed class XService(IXRepository repository, IUnitOfWork unitOfWork)`.
-- Порти (`IXRepository`, `IUnitOfWork`) оголошені в `Application/Abstractions/`, не в Domain.
-- Commands (`CreateXCommand`, `UpdateXCommand`) і DTO (`XDto`) — в `Application/<Aggregate>/`, не в Api.
-- Кожен публічний async метод — `CancellationToken cancellationToken = default` останнім параметром.
-- `DependencyInjection.cs` у кожному шарі: статичний клас з одним методом `Add<Layer>(...)`, що реєструє сервіси в DI.
+- A service = a `sealed class` with **primary constructor** DI: `public sealed class XService(IXRepository repository, IUnitOfWork unitOfWork)`.
+- Ports (`IXRepository`, `IUnitOfWork`) are declared in `Application/Abstractions/`, not in Domain.
+- Commands (`CreateXCommand`, `UpdateXCommand`) and DTOs (`XDto`) — in `Application/<Aggregate>/`, not in Api.
+- Every public async method has `CancellationToken cancellationToken = default` as the last parameter.
+- `DependencyInjection.cs` in each layer: a static class with a single `Add<Layer>(...)` method that registers services in DI.
 
 ## Infrastructure → [references/infrastructure.md](references/infrastructure.md)
-- `AppDbContext` реалізує `IUnitOfWork` напряму (вже має `SaveChangesAsync`).
-- Fluent API конфігурація в `OnModelCreating`, без окремих `IEntityTypeConfiguration` файлів (поки одна сутність — тримайся існуючого стилю, не вводь нову абстракцію без потреби).
-- Repository-реалізації — `internal sealed class` (деталь реалізації, недоступна за межами Infrastructure); read-методи — `.AsNoTracking()`.
-- **Схема БД — лише через EF Core Migrations, `EnsureCreatedAsync()` не використовується і не повертається.**
-  Будь-яка зміна `Domain`-моделі (нова entity, новий/змінений стовпець, зв'язок, зміна `OnModelCreating`), що
-  впливає на схему БД, **обов'язково** супроводжується новою міграцією в тому ж diff:
+- `AppDbContext` implements `IUnitOfWork` directly (it already has `SaveChangesAsync`).
+- Fluent API configuration in `OnModelCreating`, without separate `IEntityTypeConfiguration` files (while there is one entity — stick to the existing style, don't introduce a new abstraction without need).
+- Repository implementations are `internal sealed class` (an implementation detail, inaccessible outside Infrastructure); read methods use `.AsNoTracking()`.
+- **The DB schema is managed only through EF Core Migrations; `EnsureCreatedAsync()` is not used and must not come back.**
+  Any change to the `Domain` model (a new entity, a new/changed column, a relationship, a change to `OnModelCreating`) that
+  affects the DB schema **must** be accompanied by a new migration in the same diff:
   `dotnet ef migrations add <Name> --project src/ProductCatalog.Infrastructure --startup-project src/ProductCatalog.Api -o Persistence/Migrations`
-  (виконується з `BE/`; `dotnet-ef` встановлений як локальний tool — `dotnet tool run dotnet-ef`, якщо
-  `dotnet ef` недоступний глобально). Ініціалізація схеми при старті — лише `dbContext.Database.MigrateAsync()`
-  (`Program.cs`). Перед завершенням задачі перевір, що нова/змінена міграція застосовується без помилок на вже
-  **існуючій** БД (не лише на щойно створеній) — інакше повторюється інцидент, коли нова модель додана в коді,
-  але ніколи не потрапила в реальну БД.
+  (run from `BE/`; `dotnet-ef` is installed as a local tool — `dotnet tool run dotnet-ef`, if
+  `dotnet ef` isn't available globally). Schema initialization at startup is only `dbContext.Database.MigrateAsync()`
+  (`Program.cs`). Before finishing a task, verify that the new/changed migration applies without errors to an already
+  **existing** DB (not just a freshly created one) — otherwise the incident repeats where a new model was added in code
+  but never made it into the real DB.
 
 ## Api → [references/api.md](references/api.md)
-- Контролер = primary constructor з Application-сервісом, `[ApiController] [Authorize] [Route("api/...")]`.
-- Кожен action: `[ProducesResponseType<T>(StatusCodes.Status200OK)]` (generic-синтаксис) + окремий атрибут без generic на кожен можливий error-статус.
-- Доступ до захищених дій — **за permission, не за роллю**: `[Authorize(Policy = Permissions.X)]`
-  (константи в `Application/Authorization/Permissions.cs`; перевірку робить `PermissionAuthorizationHandler`
-  за claim `permissions` з wildcard-логікою). Для нових endpoint'ів `Roles = "..."` не використовуй і не змішуй
-  з `Policy` в одному контролері. Старий `[Authorize(Roles = "Admin")]` у `ProductsController` — legacy, поки не мігрований.
-- Request-контракти (`*Request`, `sealed record` з DataAnnotations) — в `Api/Contracts/`. Response повертає DTO з Application напряму — **без** окремого Api-response-типу.
-- `Program.cs` — top-level statements, конфігурація читається і валідується (fail-fast) до `builder.Build()`.
+- A controller = a primary constructor with an Application service, `[ApiController] [Authorize] [Route("api/...")]`.
+- Each action: `[ProducesResponseType<T>(StatusCodes.Status200OK)]` (generic syntax) + a separate non-generic attribute for each possible error status.
+- Access to protected actions is **by permission, not by role**: `[Authorize(Policy = Permissions.X)]`
+  (constants in `Application/Authorization/Permissions.cs`; the check is done by `PermissionAuthorizationHandler`
+  using the `permissions` claim with wildcard logic). Don't use `Roles = "..."` for new endpoints and don't mix it
+  with `Policy` in one controller. The old `[Authorize(Roles = "Admin")]` in `ProductsController` is legacy, not yet migrated.
+- Request contracts (`*Request`, `sealed record` with DataAnnotations) — in `Api/Contracts/`. The response returns the Application DTO directly — **without** a separate Api response type.
+- `Program.cs` — top-level statements, configuration is read and validated (fail-fast) before `builder.Build()`.
 
-## Тестування → [references/testing.md](references/testing.md)
-- xUnit у `BE/tests/ProductCatalog.UnitTests`, референс лише на `Application`+`Domain` — Domain-валідація, Application-сервіси й чиста логіка.
-- Api-компоненти (authorization handlers, policy providers, атрибути контролерів) — у `BE/tests/ProductCatalog.Api.UnitTests` (референс на `Api`), без HTTP-пайплайна і БД. Не додавай посилання на Api в `ProductCatalog.UnitTests`.
-- Один тест-клас на файл.
-- `[Fact]` для одного кейсу, `[Theory]`+`[InlineData]` для набору значень.
-- Юніт-тести на Domain-валідацію й Application-сервіси (з мок-репозиторієм). Інтеграційних тестів і WebApplicationFactory наразі немає.
+## Testing → [references/testing.md](references/testing.md)
+- xUnit in `BE/tests/ProductCatalog.UnitTests`, referencing only `Application`+`Domain` — Domain validation, Application services and pure logic.
+- Api components (authorization handlers, policy providers, controller attributes) — in `BE/tests/ProductCatalog.Api.UnitTests` (references `Api`), without the HTTP pipeline or DB. Don't add a reference to Api in `ProductCatalog.UnitTests`.
+- One test class per file.
+- `[Fact]` for a single case, `[Theory]`+`[InlineData]` for a set of values.
+- Unit tests for Domain validation and Application services (with a mock repository). There are currently no integration tests or WebApplicationFactory.
 
-## Конфігурація та Docker → [references/configuration-docker.md](references/configuration-docker.md)
-- Секції `appsettings.json` відображаються в env vars через `__` (double underscore): `Jwt__Key`, `AdminSeed__Password`.
-- `compose.yaml`: сервіс `api` + `sqlserver`, `depends_on.sqlserver.condition: service_healthy`.
+## Configuration and Docker → [references/configuration-docker.md](references/configuration-docker.md)
+- `appsettings.json` sections map to env vars via `__` (double underscore): `Jwt__Key`, `AdminSeed__Password`.
+- `compose.yaml`: `api` + `sqlserver` services, `depends_on.sqlserver.condition: service_healthy`.
 
-## Чеклист перед завершенням задачі
-- [ ] `dotnet build` з кореня `BE/` проходить без помилок і нових warnings.
-- [ ] Залежності між шарами не порушені (Domain нічого не імпортує; Application не посилається на Infrastructure/Api).
-- [ ] Нова сутність/сервіс повторює існуючі паттерни (sealed, primary constructors, CancellationToken, guard clauses), а не вигадує нові.
-- [ ] DTO/Commands — в Application, Request-контракти — в Api/Contracts, інтерфейси портів — в Application/Abstractions.
-- [ ] Юніт-тести на нову доменну логіку й Application-сервіс написані (xUnit, `BE/tests/ProductCatalog.UnitTests`); на нові Api-компоненти без HTTP/БД — у `BE/tests/ProductCatalog.Api.UnitTests`.
-- [ ] `dotnet test` з кореня `BE/` проходить.
-- [ ] Паролі/секрети не хардкодяться — лише через конфігурацію з fallback для локальної розробки.
-- [ ] Якщо diff змінює `Domain/Entities/*.cs` чи `OnModelCreating` в `AppDbContext.cs` — у тому ж diff є
-  відповідна EF Core міграція, застосована без помилок до вже існуючої БД (не лише щойно створеної); її
-  відсутність — 🔴/🟡 зауваження при рев'ю залежно від серйозності.
+## Checklist before finishing a task
+- [ ] `dotnet build` from the `BE/` root passes with no errors and no new warnings.
+- [ ] Layer dependencies are not violated (Domain imports nothing; Application doesn't reference Infrastructure/Api).
+- [ ] A new entity/service follows existing patterns (sealed, primary constructors, CancellationToken, guard clauses) rather than inventing new ones.
+- [ ] DTOs/Commands — in Application, Request contracts — in Api/Contracts, port interfaces — in Application/Abstractions.
+- [ ] Unit tests for new domain logic and Application services are written (xUnit, `BE/tests/ProductCatalog.UnitTests`); for new Api components without HTTP/DB — in `BE/tests/ProductCatalog.Api.UnitTests`.
+- [ ] `dotnet test` from the `BE/` root passes.
+- [ ] Passwords/secrets are not hard-coded — only via configuration with a fallback for local development.
+- [ ] If the diff changes `Domain/Entities/*.cs` or `OnModelCreating` in `AppDbContext.cs` — the same diff contains
+  a corresponding EF Core migration that applies without errors to an already existing DB (not just a freshly created one); its
+  absence is a 🔴/🟡 review finding depending on severity.

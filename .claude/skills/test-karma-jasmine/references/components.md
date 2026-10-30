@@ -1,8 +1,8 @@
-# Компоненти, директиви, пайпи
+# Components, directives, pipes
 
-## Компонент: inputs, outputs, DOM, host
+## Component: inputs, outputs, DOM, host
 
-Компонент:
+Component:
 
 ```ts
 @Component({
@@ -12,7 +12,7 @@
   template: `
     <h3>{{ product().name }}</h3>
     <p>{{ product().price | currency }}</p>
-    <button type="button" [disabled]="soldOut()" (click)="addToCart.emit(product().id)">Додати в кошик</button>
+    <button type="button" [disabled]="soldOut()" (click)="addToCart.emit(product().id)">Add to cart</button>
   `,
 })
 export class ProductCardComponent {
@@ -22,7 +22,7 @@ export class ProductCardComponent {
 }
 ```
 
-Тест:
+Test:
 
 ```ts
 import { ComponentFixture, TestBed } from '@angular/core/testing';
@@ -35,7 +35,7 @@ describe('ProductCardComponent', () => {
   let fixture: ComponentFixture<ProductCardComponent>;
   let el: HTMLElement;
 
-  // Фабрика з перевизначеннями — замість дублювання налаштувань у кожному тесті
+  // Factory with overrides — instead of duplicating setup in every test
   async function setup(overrides: Partial<Product> = {}): Promise<void> {
     fixture = TestBed.createComponent(ProductCardComponent);
     fixture.componentRef.setInput('product', { ...product, ...overrides });
@@ -43,7 +43,7 @@ describe('ProductCardComponent', () => {
     el = fixture.nativeElement;
   }
 
-  // Кидає помилку, якщо елемента немає — тест не «пройде» випадково
+  // Throws if the element is missing — so the test doesn't "pass" by accident
   function button(): HTMLButtonElement {
     const btn = el.querySelector<HTMLButtonElement>('button');
     if (!btn) throw new Error('Button not found');
@@ -89,21 +89,21 @@ describe('ProductCardComponent', () => {
 });
 ```
 
-Ключове:
-- `setInput()` + `await fixture.whenStable()` — після кожної зміни стану, перед перевіркою DOM.
-- `fixture.nativeElement` — це host-елемент: на ньому перевіряються host-класи та атрибути.
-- `protected` члени (як `soldOut`) не перевіряємо напряму — лише їхній вплив на DOM.
+Key points:
+- `setInput()` + `await fixture.whenStable()` — after every state change, before checking the DOM.
+- `fixture.nativeElement` is the host element: host classes and attributes are checked on it.
+- `protected` members (like `soldOut`) are not checked directly — only their effect on the DOM.
 
-## Компонент із залежностями (smart / container)
+## Component with dependencies (smart / container)
 
-Мокай сервіси через DI і перевіряй, що компонент їх викликає й відображає результат:
+Mock services via DI and check that the component calls them and displays the result:
 
 ```ts
 let store: jasmine.SpyObj<ProductStore>;
 
 beforeEach(async () => {
   store = jasmine.createSpyObj<ProductStore>('ProductStore', ['load'], {
-    products: signal<Product[]>([book]).asReadonly(),   // властивості-сигнали — третім аргументом
+    products: signal<Product[]>([book]).asReadonly(),   // signal properties — as the third argument
   });
   await TestBed.configureTestingModule({
     imports: [ProductListPageComponent],
@@ -112,10 +112,10 @@ beforeEach(async () => {
 });
 ```
 
-Якщо дочірні компоненти важкі, їх можна замінити заглушками:
+If child components are heavy, they can be replaced with stubs:
 `TestBed.overrideComponent(ProductListPageComponent, { remove: { imports: [ChartComponent] }, add: { imports: [ChartStubComponent] } })`.
 
-## Директива — через тестовий host
+## Directive — through a test host
 
 ```ts
 @Directive({
@@ -163,9 +163,9 @@ describe('Highlight', () => {
 });
 ```
 
-## Пайп — без TestBed
+## Pipe — without TestBed
 
-Чистий пайп без залежностей — звичайний клас:
+A pure pipe without dependencies is a plain class:
 
 ```ts
 describe('TruncatePipe', () => {
@@ -185,4 +185,4 @@ describe('TruncatePipe', () => {
 });
 ```
 
-Якщо пайп використовує `inject()` — створюй його в `TestBed.runInInjectionContext(() => new MyPipe())`.
+If the pipe uses `inject()` — create it inside `TestBed.runInInjectionContext(() => new MyPipe())`.

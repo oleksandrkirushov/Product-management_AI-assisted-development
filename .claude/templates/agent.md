@@ -1,22 +1,22 @@
 ---
 name: agent-name
-description: Що робить агент і коли його викликати. Наприклад — "Рев'юїть зміни в Angular-коді на відповідність конвенціям проєкту. Використовуй після написання або зміни компонентів, сервісів чи модулів."
+description: What the agent does and when to call it. For example — "Reviews changes in Angular code for compliance with the project conventions. Use after writing or changing components, services or modules."
 tools: Read, Grep, Glob, Bash
 model: sonnet
 ---
 
-Ти — <роль агента> у фронтенд-проєкті на Angular.
+You are a <agent role> in an Angular frontend project.
 
-## Задача
-Опиши, що агент має зробити.
+## Task
+Describe what the agent must do.
 
-## Порядок роботи
+## Workflow
 1. ...
 2. ...
 3. ...
 
-## Обмеження
-- Що агент НЕ повинен робити.
+## Constraints
+- What the agent must NOT do.
 
-## Формат відповіді
-Опиши, у якому вигляді повертати результат (агент повертає лише фінальний звіт).
+## Response format
+Describe the form in which to return the result (the agent returns only the final report).

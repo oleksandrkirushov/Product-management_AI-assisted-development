@@ -1,17 +1,14 @@
-// Кольори хедера — лише тут, через токени теми (`_material-theme.scss`):
-// --mat-sys-primary = #000000, --mat-sys-on-primary = #ffffff (контраст 21:1).
-// Напівпрозорі відтінки рахуються від `--app-header-fg`, тож колір задається в одному місці.
+
 .app-header {
   --app-header-bg: var(--mat-sys-primary);
   --app-header-fg: var(--mat-sys-on-primary);
-  // Рамка при hover: ~#999 на чорному — 7.4:1 (≥ 3:1 для не-текстових елементів).
+
   --app-header-hover-border: color-mix(in srgb, var(--app-header-fg) 60%, transparent);
-  // Підсвітка фону: ~#292929 під білим текстом — ≈ 14.7:1.
   --app-header-highlight: color-mix(in srgb, var(--app-header-fg) 16%, transparent);
   --app-header-highlight-strong: color-mix(in srgb, var(--app-header-fg) 24%, transparent);
 
   display: flex;
-  // Reflow на 320px (WCAG 1.4.10): елементи переносяться на новий рядок замість горизонтального скролу.
+
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
@@ -29,8 +26,6 @@
   margin-right: auto;
 }
 
-// Спільна база для посилань і кнопки: рамка завжди 1px (прозора за замовчуванням),
-// тож hover/active не змінюють розміри й не зсувають layout.
 %app-header-control {
   padding: 0.25rem 0.75rem;
   font: inherit;
@@ -60,10 +55,10 @@
     border-color: var(--app-header-hover-border);
   }
 
-  // Активне посилання відрізняється не лише кольором: суцільна біла рамка, фон і підкреслення.
-  // Модифікатор пишеться повним класом (`&.app-header__link--active`), а не `&--active`, і `:hover`
-  // стоїть перед ним: Angular сприймає `--active:` у селекторі як оголошення CSS-змінної
-  // й підставляє namespace (`--%NS%active:hover`), через що правило перестає спрацьовувати.
+  // The active link differs not only by color: solid white border, background and underline.
+  // The modifier is written as a full class (`&.app-header__link--active`) rather than `&--active`, and `:hover`
+  // comes before it: Angular treats `--active:` in a selector as a CSS custom property declaration
+  // and injects a namespace (`--%NS%active:hover`), which makes the rule stop working.
   &.app-header__link--active {
     border-color: var(--app-header-fg);
     background-color: var(--app-header-highlight);
@@ -76,8 +71,8 @@
     background-color: var(--app-header-highlight-strong);
   }
 
-  // Windows High Contrast: прозора рамка стає видимою, а фон hover примусово скидається.
-  // Тому стани передаються лише системними кольорами рамки; активне ще й підкреслене.
+  // Windows High Contrast: the transparent border becomes visible and the hover background is forcibly reset.
+  // So states are conveyed only by system border colors; the active one is also underlined.
   @media (forced-colors: active) {
     border-color: Canvas;
 
@@ -93,7 +88,7 @@
 }
 
 .app-header__username {
-  // Довге ім'я обрізається з «…», а не розпирає хедер; повне ім'я — у `title`.
+  // A long name is truncated with "…" instead of stretching the header; the full name is in `title`.
   min-width: 0;
   overflow: hidden;
   font-weight: 600;

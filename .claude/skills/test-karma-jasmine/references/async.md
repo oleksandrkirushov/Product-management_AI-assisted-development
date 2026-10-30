@@ -1,29 +1,29 @@
-# Асинхронність у zoneless-тестах
+# Async in zoneless tests
 
-Zone.js у проєкті немає, тому:
+The project has no Zone.js, so:
 
-| Замість (zone.js) | Використовуй |
+| Instead of (zone.js) | Use |
 |---|---|
-| `fakeAsync(() => ...)` | звичайний `() => ...` + `jasmine.clock()` |
+| `fakeAsync(() => ...)` | a plain `() => ...` + `jasmine.clock()` |
 | `tick(ms)` | `jasmine.clock().tick(ms)` |
 | `waitForAsync(...)` | `async () => { ... await ... }` |
-| `fixture.detectChanges()` після кожної зміни | `await fixture.whenStable()` |
-| `flush()` / `flushMicrotasks()` | `await fixture.whenStable()` або `await` конкретного Promise |
+| `fixture.detectChanges()` after every change | `await fixture.whenStable()` |
+| `flush()` / `flushMicrotasks()` | `await fixture.whenStable()` or `await` the specific Promise |
 
-`fakeAsync` тут падає з помилкою `zone-testing.js is needed for the fakeAsync() test helper`.
+`fakeAsync` fails here with the error `zone-testing.js is needed for the fakeAsync() test helper`.
 
-## Що чим «прокручувати»
+## What to "advance" with what
 
-| Ситуація | Що робити |
+| Situation | What to do |
 |---|---|
-| Змінився input / сигнал / стан — треба оновити DOM | `await fixture.whenStable()` |
-| Треба виконати `effect()` (у т. ч. всередині `toObservable()`) | `TestBed.tick()` |
+| An input / signal / state changed — the DOM needs updating | `await fixture.whenStable()` |
+| An `effect()` needs to run (including inside `toObservable()`) | `TestBed.tick()` |
 | `setTimeout` / `setInterval` | `jasmine.clock().install()` + `jasmine.clock().tick(ms)` |
-| RxJS `debounceTime`, `delay`, `throttleTime`, `timer` | те саме **+ `jasmine.clock().mockDate()`** |
-| Promise у коді | `await` його або `await fixture.whenStable()` |
-| HTTP | `HttpTestingController.flush()`, потім `await fixture.whenStable()` |
+| RxJS `debounceTime`, `delay`, `throttleTime`, `timer` | the same **+ `jasmine.clock().mockDate()`** |
+| A Promise in the code | `await` it or `await fixture.whenStable()` |
+| HTTP | `HttpTestingController.flush()`, then `await fixture.whenStable()` |
 
-## Таймер (`setTimeout`)
+## Timer (`setTimeout`)
 
 ```ts
 @Injectable({ providedIn: 'root' })
@@ -47,14 +47,14 @@ describe('ToastStore', () => {
     store = TestBed.inject(ToastStore);
   });
 
-  afterEach(() => jasmine.clock().uninstall()); // обов'язково — інакше зламаються інші тести
+  afterEach(() => jasmine.clock().uninstall()); // required — otherwise other tests will break
 
   it('should hide the message after the given duration', () => {
-    store.show('Збережено', 3000);
-    expect(store.messages()).toEqual(['Збережено']);
+    store.show('Saved', 3000);
+    expect(store.messages()).toEqual(['Saved']);
 
     jasmine.clock().tick(2999);
-    expect(store.messages()).toEqual(['Збережено']);
+    expect(store.messages()).toEqual(['Saved']);
 
     jasmine.clock().tick(1);
     expect(store.messages()).toEqual([]);
@@ -62,7 +62,7 @@ describe('ToastStore', () => {
 });
 ```
 
-Перевіряй межу з обох боків (2999 → ще є, 3000 → вже немає).
+Check the boundary from both sides (2999 → still there, 3000 → gone).
 
 ## RxJS debounce + signals + effects
 
@@ -81,7 +81,7 @@ export class Search {
 describe('Search', () => {
   beforeEach(() => {
     jasmine.clock().install();
-    jasmine.clock().mockDate(); // RxJS рахує час через Date.now() — без цього debounce ніколи не спрацює
+    jasmine.clock().mockDate(); // RxJS measures time via Date.now() — without this debounce never fires
   });
 
   afterEach(() => jasmine.clock().uninstall());
@@ -91,7 +91,7 @@ describe('Search', () => {
     const search = fixture.componentInstance;
 
     search.query.set('book');
-    TestBed.tick(); // запускає effect усередині toObservable() → значення йде в pipe
+    TestBed.tick(); // runs the effect inside toObservable() → the value goes into the pipe
 
     jasmine.clock().tick(299);
     expect(search.result()).toBe('');
@@ -102,11 +102,11 @@ describe('Search', () => {
 });
 ```
 
-## Типові пастки
-- **Тест зависає на `await fixture.whenStable()`** — є незавершений HTTP-запит (`httpResource`, `HttpClient`)
-  або нескінченний `setInterval` під `jasmine.clock()`. Спершу `flush()` запит / зупини таймер.
-- **`jasmine.clock()` + `await whenStable()` в одному тесті** — whenStable може чекати на таймер, який ніколи не настане.
-  Розділяй: синхронні перевірки з годинником — окремо, DOM після `whenStable` — окремо; або `tick()` годинника до `await`.
-- **Effect не спрацював** — забув `TestBed.tick()` (або `await fixture.whenStable()` для компонента).
-- **Тест зелений, але нічого не перевірив** — `expect` всередині `subscribe`, який так і не виконався.
-  Використовуй `firstValueFrom` + `await` або збирай значення в масив і перевіряй після дії.
+## Common pitfalls
+- **The test hangs on `await fixture.whenStable()`** — there's a pending HTTP request (`httpResource`, `HttpClient`)
+  or an endless `setInterval` under `jasmine.clock()`. First `flush()` the request / stop the timer.
+- **`jasmine.clock()` + `await whenStable()` in the same test** — whenStable may wait for a timer that will never fire.
+  Separate them: synchronous checks with the clock — separately, DOM after `whenStable` — separately; or `tick()` the clock before `await`.
+- **The effect didn't run** — you forgot `TestBed.tick()` (or `await fixture.whenStable()` for a component).
+- **The test is green but verified nothing** — an `expect` inside a `subscribe` that never ran.
+  Use `firstValueFrom` + `await`, or collect values into an array and check after the action.

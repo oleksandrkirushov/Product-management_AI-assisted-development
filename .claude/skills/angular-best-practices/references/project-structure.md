@@ -1,61 +1,61 @@
-# Структура проєкту
+# Project structure
 
-## Організація за фічами
+## Organization by feature
 
 ```
 src/app/
 ├── app.component.ts / app.component.html / app.config.ts / app.routes.ts
-├── core/                    # singleton-речі на весь застосунок
+├── core/                    # app-wide singletons
 │   ├── guards/              #   auth.guard.ts, admin.guard.ts
 │   ├── interceptors/        #   auth.interceptor.ts
 │   ├── utils/               #   http-error.ts
 │   └── layout/              #   header, footer, shell
-├── shared/                  # перевикористовувані presentational компоненти, pipes, directives, utils
+├── shared/                  # reusable presentational components, pipes, directives, utils
 │   ├── ui/
 │   └── pipes/
 └── features/
-    ├── models/              # моделі даних усіх фіч: product.ts, order.ts
-    ├── services/            # сервіси даних усіх фіч: product.service.ts (+ .spec.ts)
-    │   └── mocks/           # мокові дані для сервісів: mock-products.ts
-    └── list/                # фіча — лише UI
+    ├── models/              # data models for all features: product.ts, order.ts
+    ├── services/            # data services for all features: product.service.ts (+ .spec.ts)
+    │   └── mocks/           # mock data for services: mock-products.ts
+    └── list/                # a feature — UI only
         ├── list.routes.ts
         └── list.component.ts/.html/.scss/.spec.ts
 
 features/auth/
-├── login/                   # кожен компонент — у власній папці
+├── login/                   # each component lives in its own folder
 │   └── login.component.ts/.html/.scss/.spec.ts
 └── register/
     └── register.component.ts/.html/.scss/.spec.ts
 ```
 
-- Групуй за **фічами (доменом)**, а не за типом (`components/`, `services/`).
-- Фіча не імпортує внутрішні файли іншої фічі. Спільне — переносимо в `shared/` або `core/`.
-- `shared/` не залежить від `features/`.
-- **Моделі** (інтерфейси сутностей і відповідей API) — лише в `features/models/`, по одному файлу на сутність.
-  Імпорт — через alias `@features/models/<name>`.
-- **Сервіси даних** (API-сервіси, стори, сервіси з моками) — лише в `features/services/`, моки — у `features/services/mocks/`.
-  Імпорт — через alias `@features/services/<name>`. Сервіси рівня застосунку (auth, interceptors) — у `core/`.
-- **Папка фічі — лише UI:** компоненти, шаблони, стилі, їхні тести та `*.routes.ts`.
-  Не створюй у фічі `models/`, `services/` чи `data/`.
+- Group by **feature (domain)**, not by type (`components/`, `services/`).
+- A feature doesn't import internal files of another feature. Shared things move to `shared/` or `core/`.
+- `shared/` doesn't depend on `features/`.
+- **Models** (interfaces for entities and API responses) live only in `features/models/`, one file per entity.
+  Import via the alias `@features/models/<name>`.
+- **Data services** (API services, stores, services with mocks) live only in `features/services/`, mocks in `features/services/mocks/`.
+  Import via the alias `@features/services/<name>`. App-level services (auth, interceptors) go in `core/`.
+- **A feature folder is UI only:** components, templates, styles, their tests and `*.routes.ts`.
+  Don't create `models/`, `services/` or `data/` inside a feature.
 
-## Іменування
+## Naming
 
-- **Кожен компонент — у власній папці** всередині фічі, названій так само, як сам компонент
-  (`auth/register/register.component.ts/.html/.scss/.spec.ts`, а не `auth/register.component.ts` поруч з іншими
-  файлами фічі).
-- Файли — `kebab-case`. Один компонент / сервіс / директива на файл.
-- Тест — поруч із файлом: `product-card.component.spec.ts`.
-- **Компоненти** (правило проєкту) — файли `<name>.component.ts/.html/.scss/.spec.ts`, клас `<Name>Component`:
-  `product-card.component.ts` → `ProductCardComponent`. `ng generate component` створює саме так
-  (`"type": "component"` у schematics в `angular.json`).
-- Для інших (не компонентів) файлів — суфікс за роллю через крапку: `auth.guard.ts`, `auth.interceptor.ts`, `has-permission.directive.ts`.
-- **Файли сервісів даних** у `features/services/` — `<назва-сервісу>.service.ts` (+ `.service.spec.ts`), крапка перед
-  суфіксом, а не дефіс: `auth.service.ts`, `product.service.ts`, `user.service.ts`. Клас лишається без зміни суфікса
-  (`AuthService`, `ProductService`), перейменовується лише файл.
-- Префікс селектора — з `angular.json` (`app-` за замовчуванням).
+- **Each component lives in its own folder** inside the feature, named the same as the component itself
+  (`auth/register/register.component.ts/.html/.scss/.spec.ts`, not `auth/register.component.ts` next to other
+  feature files).
+- Files are `kebab-case`. One component / service / directive per file.
+- The test sits next to the file: `product-card.component.spec.ts`.
+- **Components** (project rule) — files `<name>.component.ts/.html/.scss/.spec.ts`, class `<Name>Component`:
+  `product-card.component.ts` → `ProductCardComponent`. `ng generate component` creates exactly this
+  (`"type": "component"` in the schematics in `angular.json`).
+- For other (non-component) files — a role suffix after a dot: `auth.guard.ts`, `auth.interceptor.ts`, `has-permission.directive.ts`.
+- **Data service files** in `features/services/` — `<service-name>.service.ts` (+ `.service.spec.ts`), a dot before
+  the suffix, not a hyphen: `auth.service.ts`, `product.service.ts`, `user.service.ts`. The class keeps its suffix unchanged
+  (`AuthService`, `ProductService`), only the file is renamed.
+- Selector prefix — from `angular.json` (`app-` by default).
 
-## Конфігурація
+## Configuration
 
-- `tsconfig.json`: `"strict": true`, `strictTemplates: true` у `angularCompilerOptions`.
-- Path aliases (`@core/*`, `@shared/*`, `@features/*`) замість глибоких `../../../`.
-- Змінні оточення — в `environments/`, секрети в репозиторій не комітимо.
+- `tsconfig.json`: `"strict": true`, `strictTemplates: true` in `angularCompilerOptions`.
+- Path aliases (`@core/*`, `@shared/*`, `@features/*`) instead of deep `../../../`.
+- Environment variables go in `environments/`, we don't commit secrets to the repository.

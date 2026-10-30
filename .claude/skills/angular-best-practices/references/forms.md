@@ -1,4 +1,4 @@
-# Форми
+# Forms
 
 ## Typed reactive forms
 
@@ -28,26 +28,26 @@ export class SignUpFormComponent {
          [attr.aria-invalid]="form.controls.email.invalid && form.controls.email.touched"
          aria-describedby="email-error" />
   @if (form.controls.email.touched && form.controls.email.hasError('email')) {
-    <p id="email-error" role="alert">Некоректний email</p>
+    <p id="email-error" role="alert">Invalid email</p>
   }
-  <button type="submit">Зареєструватися</button>
+  <button type="submit">Sign up</button>
 </form>
 ```
 
-## Правила
+## Rules
 
-- Reactive forms для будь-яких нетривіальних форм; template-driven — лише для 1–2 полів.
-- `NonNullableFormBuilder` — щоб `reset()` повертав початкові значення, а не `null`.
-- Не використовуй `UntypedFormGroup` / `any` у формах.
-- Кастомні валідатори — чисті функції `ValidatorFn` в окремому файлі.
-- Кастомні поля вводу реалізують `ControlValueAccessor`.
-- **Signal Forms** (`@angular/forms/signals`) — експериментальні. Використовуй лише якщо проєкт уже на них перейшов.
-- Доступність: кожне поле має `<label>`, помилки пов'язані через `aria-describedby`, сабміт — через `<button type="submit">`.
-- Кнопка сабміту задізейблена доти, доки форма `pristine` (а не доки вона `invalid`) — дизейбл на `invalid` блокує навіть спробу відправити форму і побачити помилки; невалідність перевіряй і блокуй сабміт усередині хендлера (`markAllAsTouched()` + `return`), а не через `[disabled]`.
+- Reactive forms for any non-trivial form; template-driven — only for 1–2 fields.
+- `NonNullableFormBuilder` — so that `reset()` returns the initial values rather than `null`.
+- Don't use `UntypedFormGroup` / `any` in forms.
+- Custom validators are pure `ValidatorFn` functions in a separate file.
+- Custom input fields implement `ControlValueAccessor`.
+- **Signal Forms** (`@angular/forms/signals`) are experimental. Use them only if the project has already switched to them.
+- Accessibility: every field has a `<label>`, errors are linked via `aria-describedby`, submission goes through `<button type="submit">`.
+- The submit button is disabled while the form is `pristine` (not while it's `invalid`) — disabling on `invalid` blocks even the attempt to submit the form and see the errors; check invalidity and block submission inside the handler (`markAllAsTouched()` + `return`), not via `[disabled]`.
 
-## Required-поля
+## Required fields
 
-Обов'язкове поле позначай зірочкою біля лейбла (видима ознака) + прихованим текстом для скрінрідерів + `aria-required` на інпуті:
+Mark a required field with an asterisk next to the label (visible cue) + hidden text for screen readers + `aria-required` on the input:
 
 ```html
 <label for="email" class="form-label">
@@ -58,11 +58,11 @@ export class SignUpFormComponent {
 <input id="email" formControlName="email" aria-required="true" />
 ```
 
-`.visually-hidden` — глобальний клас (`src/styles.scss`), не дублюй його в компоненті.
+`.visually-hidden` is a global class (`src/styles.scss`), don't duplicate it in the component.
 
-## Форма на всю сторінку з футером, прибитим донизу
+## Full-page form with a footer pinned to the bottom
 
-Коли форма займає всю сторінку (хедер + тіло + футер із кнопкою дії), футер має лишатися в самому низу навіть при малій кількості полів — через flex-column на всю висоту в'юпорту, а не `position: sticky`/`fixed`:
+When a form takes up the whole page (header + body + footer with an action button), the footer must stay at the very bottom even with few fields — via a full-viewport-height flex column, not `position: sticky`/`fixed`:
 
 ```scss
 :host {
@@ -74,16 +74,16 @@ export class SignUpFormComponent {
 form {
   display: flex;
   flex-direction: column;
-  flex: 1; // займає весь простір після хедера
+  flex: 1; // takes all the space after the header
 }
 
 .page-body {
-  flex: 1; // розтягується, відштовхуючи футер донизу
+  flex: 1; // stretches, pushing the footer down
 }
 
 .page-footer {
   display: flex;
-  justify-content: flex-end; // кнопка дії — праворуч
-  border-top: 1px solid $color-border; // горизонтальна лінія-розділювач
+  justify-content: flex-end; // action button on the right
+  border-top: 1px solid $color-border; // horizontal divider line
 }
 ```

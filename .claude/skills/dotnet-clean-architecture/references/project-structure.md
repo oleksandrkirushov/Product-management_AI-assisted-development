@@ -1,6 +1,6 @@
-# Структура solution
+# Solution structure
 
-Дерево нижче — **мінімальний приклад** розкладки шарів і папок на прикладі агрегату `Product`, а не повний перелік файлів. Повна актуальна структура (Users/Roles, Authentication, міграції, усі тести) — у [`BE/PROJECT_STRUCTURE.md`](../../../../BE/PROJECT_STRUCTURE.md).
+The tree below is a **minimal example** of the layer and folder layout using the `Product` aggregate, not a complete list of files. The full up-to-date structure (Users/Roles, Authentication, migrations, all tests) is in [`BE/PROJECT_STRUCTURE.md`](../../../../BE/PROJECT_STRUCTURE.md).
 
 ```
 BE/
@@ -8,7 +8,7 @@ BE/
 ├── Dockerfile
 ├── compose.yaml
 ├── src/
-│   ├── ProductCatalog.Domain/          # Microsoft.NET.Sdk, нуль залежностей
+│   ├── ProductCatalog.Domain/          # Microsoft.NET.Sdk, zero dependencies
 │   │   └── Entities/
 │   │       └── Product.cs
 │   ├── ProductCatalog.Application/     # Microsoft.NET.Sdk, → Domain
@@ -16,9 +16,9 @@ BE/
 │   │   ├── Abstractions/
 │   │   │   ├── IProductRepository.cs
 │   │   │   └── IUnitOfWork.cs
-│   │   ├── Authorization/              # чиста логіка permission (без ASP.NET)
+│   │   ├── Authorization/              # pure permission logic (no ASP.NET)
 │   │   │   ├── PermissionMatcher.cs
-│   │   │   └── Permissions.cs          # константи назв permission (resource:action)
+│   │   │   └── Permissions.cs          # permission name constants (resource:action)
 │   │   └── Products/
 │   │       ├── ProductService.cs
 │   │       ├── ProductDto.cs
@@ -33,8 +33,8 @@ BE/
 │       ├── Program.cs
 │       ├── appsettings.json
 │       ├── appsettings.Development.json
-│       ├── Authentication/             # ActiveUserTokenValidator: перевірка JWT у OnTokenValidated (claim uid → IsActive)
-│       ├── Authorization/              # requirement, handler, policy provider (ASP.NET-специфіка)
+│       ├── Authentication/             # ActiveUserTokenValidator: JWT check in OnTokenValidated (uid claim → IsActive)
+│       ├── Authorization/              # requirement, handler, policy provider (ASP.NET-specific)
 │       ├── Controllers/
 │       │   ├── ProductsController.cs
 │       │   └── AuthController.cs
@@ -45,36 +45,36 @@ BE/
 │       └── Options/
 │           └── JwtOptions.cs
 └── tests/
-    ├── ProductCatalog.UnitTests/       # xUnit, → Application, Domain (НЕ Infrastructure/Api)
+    ├── ProductCatalog.UnitTests/       # xUnit, → Application, Domain (NOT Infrastructure/Api)
     │   └── ProductTests.cs
-    └── ProductCatalog.Api.UnitTests/   # xUnit, → Api (Api-компоненти без HTTP/БД)
+    └── ProductCatalog.Api.UnitTests/   # xUnit, → Api (Api components without HTTP/DB)
         └── PermissionAuthorizationHandlerTests.cs
 ```
 
-## Залежності між проєктами (один напрямок)
+## Project dependencies (one direction)
 
-| Проєкт | ProjectReference | NuGet (ключові) |
+| Project | ProjectReference | NuGet (key) |
 |---|---|---|
 | `Domain` | — | — |
 | `Application` | `Domain` | `Microsoft.Extensions.DependencyInjection.Abstractions` |
 | `Infrastructure` | `Application`, `Domain` | `Microsoft.EntityFrameworkCore.SqlServer`, `Microsoft.Extensions.Configuration.Abstractions` |
 | `Api` | `Application`, `Infrastructure` | `Microsoft.AspNetCore.Authentication.JwtBearer`, `Microsoft.OpenApi`, `Swashbuckle.AspNetCore` |
 | `UnitTests` | `Application`, `Domain` | `xunit`, `xunit.runner.visualstudio`, `Microsoft.NET.Test.Sdk`, `coverlet.collector` |
-| `Api.UnitTests` | `Api` | ті самі, що в `UnitTests` (ті самі версії) |
+| `Api.UnitTests` | `Api` | the same as `UnitTests` (same versions) |
 
-**Правило:** залежність лише в один бік, по стрілках вище. `Domain` не має права посилатись ні на що. `Application` не бачить EF Core, HTTP, Api-контракти. Якщо тобі в Application чи Domain раптом потрібен тип з Infrastructure/Api — це ознака, що щось спроєктовано неправильно (найчастіше — порт-інтерфейс мав би бути в Application/Abstractions, а не лежати в Infrastructure).
+**Rule:** dependencies go in one direction only, along the arrows above. `Domain` may not reference anything. `Application` doesn't see EF Core, HTTP or Api contracts. If you suddenly need a type from Infrastructure/Api in Application or Domain — that's a sign something is designed wrong (most often a port interface should have been in Application/Abstractions rather than in Infrastructure).
 
-## Namespace і файлова конвенція
+## Namespace and file conventions
 
-- Namespace = `ProductCatalog.<Layer>[.<SubFolder>]`, напр. `ProductCatalog.Domain.Entities`, `ProductCatalog.Application.Products`, `ProductCatalog.Application.Abstractions`, `ProductCatalog.Infrastructure.Persistence`, `ProductCatalog.Api.Controllers`, `ProductCatalog.Api.Contracts`, `ProductCatalog.Api.Options`.
-- File-scoped namespaces скрізь: `namespace ProductCatalog.Domain.Entities;` (не блочний `{ }` стиль).
-- Усі `.csproj`: `<TargetFramework>net10.0</TargetFramework>`, `<Nullable>enable</Nullable>`, `<ImplicitUsings>enable</ImplicitUsings>`.
-- Немає committed `.editorconfig` і немає committed `GlobalUsings.cs` — не додавай їх без явного запиту, дотримуйся того, що вже є.
-- Один публічний тип на файл, ім'я файлу = ім'я типу.
+- Namespace = `ProductCatalog.<Layer>[.<SubFolder>]`, e.g. `ProductCatalog.Domain.Entities`, `ProductCatalog.Application.Products`, `ProductCatalog.Application.Abstractions`, `ProductCatalog.Infrastructure.Persistence`, `ProductCatalog.Api.Controllers`, `ProductCatalog.Api.Contracts`, `ProductCatalog.Api.Options`.
+- File-scoped namespaces everywhere: `namespace ProductCatalog.Domain.Entities;` (not the block `{ }` style).
+- All `.csproj` files: `<TargetFramework>net10.0</TargetFramework>`, `<Nullable>enable</Nullable>`, `<ImplicitUsings>enable</ImplicitUsings>`.
+- There is no committed `.editorconfig` and no committed `GlobalUsings.cs` — don't add them without an explicit request, stick to what already exists.
+- One public type per file, file name = type name.
 
-## DependencyInjection.cs — конвенція на кожен шар
+## DependencyInjection.cs — a convention for each layer
 
-Кожен шар (крім Domain і Api) має рівно один файл `DependencyInjection.cs` у своєму корені зі статичним класом `DependencyInjection` і одним extension-методом `Add<ШарПроєкту>`:
+Each layer (except Domain and Api) has exactly one `DependencyInjection.cs` file at its root with a static `DependencyInjection` class and a single `Add<ProjectLayer>` extension method:
 
 ```csharp
 // Application/DependencyInjection.cs
@@ -109,6 +109,6 @@ public static class DependencyInjection
 }
 ```
 
-`Program.cs` викликає обидва ланцюжком: `builder.Services.AddApplication().AddInfrastructure(builder.Configuration);`
+`Program.cs` calls both in a chain: `builder.Services.AddApplication().AddInfrastructure(builder.Configuration);`
 
-Коли додаєш нову сутність/агрегат — реєструй новий сервіс/репозиторій у відповідному наявному `DependencyInjection.cs`, не створюй другий файл у тому ж шарі.
+When you add a new entity/aggregate — register the new service/repository in the corresponding existing `DependencyInjection.cs`, don't create a second file in the same layer.

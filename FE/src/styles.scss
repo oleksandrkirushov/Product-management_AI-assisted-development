@@ -1,25 +1,10 @@
-/* Глобальні стилі. Стилі компонентів — у їхніх .scss файлах. */
+/* Global styles. Component styles live in their own .scss files. */
 @use './material-theme';
 
-/*
- * Angular Material: лише системні токени теми (CSS-змінні `--mat-sys-*`).
- * Глобальних правил для `html`/`body` (height, font, color, background) тема не задає —
- * вигляд наявних екранів визначає блок `body` нижче.
- */
 html {
   @include material-theme.theme;
 }
 
-/*
- * Іконки `<mat-icon>`: self-hosted ПІДМНОЖИНА Material Symbols Outlined (opsz 24, wght 400, FILL 0, GRAD 0)
- * лише з іконками block, check_circle, close, delete, group, more_vert.
- * Нова іконка: додай ім'я (за алфавітом) в `icon_names` і заміни `public/fonts/*.woff2` файлом із CSS за адресою
- * https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=block,check_circle,close,delete,group,more_vert
- *
- * `@font-face` оголошено в `src/index.html`, а не тут: production-збірка вантажить styles.css асинхронно, а
- * MatIconRegistry обирає клас нижче за сімейством 'Material Symbols…' у `document.fonts` під час першого
- * `<mat-icon>` і кешує результат. Ім'я сімейства не змінюй.
- */
 .material-symbols-outlined {
   font-family: 'Material Symbols Outlined';
   font-weight: normal;
@@ -54,7 +39,7 @@ body {
   background: #ffffff;
 }
 
-/* Приховує елемент візуально, залишаючи його доступним для скрінрідерів. */
+
 .visually-hidden {
   position: absolute;
   width: 1px;

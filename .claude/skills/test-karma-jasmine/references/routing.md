@@ -1,6 +1,6 @@
-# Guards, маршрути, сторінки з httpResource
+# Guards, routes, pages with httpResource
 
-## Функціональний guard
+## Functional guard
 
 ```ts
 export const authGuard: CanActivateFn = () =>
@@ -12,7 +12,7 @@ import { TestBed } from '@angular/core/testing';
 import { ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree, provideRouter } from '@angular/router';
 
 describe('authGuard', () => {
-  // Guard використовує inject() — викликаємо його в injection context
+  // The guard uses inject() — so we call it in an injection context
   const runGuard = () =>
     TestBed.runInInjectionContext(() =>
       authGuard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot),
@@ -37,20 +37,20 @@ describe('authGuard', () => {
 });
 ```
 
-- Порожні `{} as ActivatedRouteSnapshot` — нормально, якщо guard не читає маршрут.
-  Якщо читає — передай потрібні поля: `{ params: { id: '42' } } as unknown as ActivatedRouteSnapshot`.
-- Так само тестуються `ResolveFn`, `CanMatchFn`, `CanDeactivateFn`.
+- Empty `{} as ActivatedRouteSnapshot` is fine if the guard doesn't read the route.
+  If it does — pass the needed fields: `{ params: { id: '42' } } as unknown as ActivatedRouteSnapshot`.
+- `ResolveFn`, `CanMatchFn`, `CanDeactivateFn` are tested the same way.
 
-## Сторінка: параметр маршруту → input → httpResource
+## Page: route parameter → input → httpResource
 
 ```ts
 @Component({
   selector: 'app-product-details-page',
   template: `
     @if (product.isLoading()) {
-      <p>Завантаження…</p>
+      <p>Loading…</p>
     } @else if (product.error()) {
-      <p role="alert">Помилка завантаження</p>
+      <p role="alert">Failed to load</p>
     } @else if (product.hasValue()) {
       <h2>{{ product.value().name }}</h2>
     }
@@ -90,7 +90,7 @@ describe('ProductDetailsPageComponent', () => {
     const page = await harness.navigateByUrl('/products/42', ProductDetailsPageComponent);
 
     expect(page.id()).toBe('42');
-    expect(harness.routeNativeElement?.textContent).toContain('Завантаження');
+    expect(harness.routeNativeElement?.textContent).toContain('Loading');
 
     httpMock.expectOne('/api/products/42').flush({ id: '42', name: 'Book', price: 10, stock: 1 });
     await harness.fixture.whenStable();
@@ -110,20 +110,20 @@ describe('ProductDetailsPageComponent', () => {
 });
 ```
 
-Ключове:
-- `RouterTestingHarness` проходить справжню навігацію: guards, resolvers, `withComponentInputBinding()`.
-  Це надійніше, ніж мокати `ActivatedRoute`.
-- `navigateByUrl(url, Component)` повертає екземпляр компонента (і перевіряє його тип).
-- Після `navigateByUrl` запит `httpResource` уже відправлено — можна одразу `expectOne`.
-  **Не викликай `await whenStable()` до `flush()`**: незавершений запит тримає застосунок «нестабільним», і тест зависне.
-- Після `flush()` — `await harness.fixture.whenStable()`, потім перевіряй DOM.
+Key points:
+- `RouterTestingHarness` goes through real navigation: guards, resolvers, `withComponentInputBinding()`.
+  This is more reliable than mocking `ActivatedRoute`.
+- `navigateByUrl(url, Component)` returns the component instance (and checks its type).
+- After `navigateByUrl` the `httpResource` request has already been sent — you can `expectOne` right away.
+  **Don't call `await whenStable()` before `flush()`**: a pending request keeps the app "unstable" and the test will hang.
+- After `flush()` — `await harness.fixture.whenStable()`, then check the DOM.
 
-## Навігація з компонента
-Перевіряй результат, а не виклик `router.navigate`:
+## Navigation from a component
+Check the result, not the `router.navigate` call:
 
 ```ts
 const harness = await RouterTestingHarness.create('/products');
-// ... клік по посиланню / кнопці
+// ... click on a link / button
 await harness.fixture.whenStable();
 expect(TestBed.inject(Router).url).toBe('/products/42');
 ```

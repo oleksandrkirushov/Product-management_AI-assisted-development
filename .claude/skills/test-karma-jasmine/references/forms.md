@@ -1,9 +1,9 @@
 # Reactive forms
 
-Тестуй форму так, як нею користується людина: вводь значення в DOM, натискай submit, перевіряй помилки та output.
-Не перевіряй `form.valid` напряму — форма зазвичай `protected`, і це деталь реалізації.
+Test the form the way a person uses it: enter values in the DOM, press submit, check the errors and the output.
+Don't check `form.valid` directly — the form is usually `protected`, and it's an implementation detail.
 
-Компонент:
+Component:
 
 ```ts
 export interface SignUpData {
@@ -19,11 +19,11 @@ export interface SignUpData {
       <label for="email">Email</label>
       <input id="email" type="email" formControlName="email" />
       @if (form.controls.email.touched && form.controls.email.invalid) {
-        <p id="email-error" role="alert">Некоректний email</p>
+        <p id="email-error" role="alert">Invalid email</p>
       }
-      <label for="password">Пароль</label>
+      <label for="password">Password</label>
       <input id="password" type="password" formControlName="password" />
-      <button type="submit">Зареєструватися</button>
+      <button type="submit">Sign up</button>
     </form>
   `,
 })
@@ -46,7 +46,7 @@ export class SignUpFormComponent {
 }
 ```
 
-Тест:
+Test:
 
 ```ts
 import { ComponentFixture, TestBed } from '@angular/core/testing';
@@ -63,7 +63,7 @@ describe('SignUpFormComponent', () => {
     return node;
   }
 
-  // Імітує введення користувача: значення → подія input → blur (поле стає touched)
+  // Simulates user input: value → input event → blur (the field becomes touched)
   function type(selector: string, value: string): void {
     const input = query<HTMLInputElement>(selector);
     input.value = value;
@@ -102,11 +102,11 @@ describe('SignUpFormComponent', () => {
 });
 ```
 
-## Що покривати у формах
-- Кожен валідатор: невалідне значення показує помилку, валідне — ні.
-- Граничні значення (`minLength(8)`: 7 символів — помилка, 8 — ок).
-- Submit невалідної форми: нічого не емітиться / не відправляється, помилки стають видимими.
-- Submit валідної форми: правильні дані в output або виклик сервісу.
-- Кастомні валідатори (`ValidatorFn`) — окремо, як чисті функції: `expect(myValidator(new FormControl('x'))).toEqual({ ... })`.
-- Для `<select>` — `select.value = '...'; select.dispatchEvent(new Event('change'))`;
-  для checkbox — `checkbox.click()`.
+## What to cover in forms
+- Every validator: an invalid value shows an error, a valid one doesn't.
+- Boundary values (`minLength(8)`: 7 characters — error, 8 — ok).
+- Submitting an invalid form: nothing is emitted / sent, errors become visible.
+- Submitting a valid form: correct data in the output or a service call.
+- Custom validators (`ValidatorFn`) — separately, as pure functions: `expect(myValidator(new FormControl('x'))).toEqual({ ... })`.
+- For `<select>` — `select.value = '...'; select.dispatchEvent(new Event('change'))`;
+  for a checkbox — `checkbox.click()`.

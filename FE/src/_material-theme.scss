@@ -1,15 +1,15 @@
-// Чорно-біла (grayscale) тема Angular Material 3.
+// Black-and-white (grayscale) Angular Material 3 theme.
 //
-// Палітра — чисті сірі тони (R = G = B) без кольорового відтінку: тон N відповідає
-// світлоті L* = N за шкалою M3. Єдиний виняток — `error`: це стандартна червона палітра M3,
-// бо помилка має лишатися розрізнюваною за кольором (в застосунку помилки теж червоні).
+// The palette is pure gray tones (R = G = B) with no hue: tone N corresponds to
+// lightness L* = N on the M3 scale. The only exception is `error`: it is the standard red M3 palette,
+// because errors must stay distinguishable by color (errors in the app are red as well).
 //
-// Як користуватися в компонентах: бери кольори з системних токенів `var(--mat-sys-*)`
-// (https://material.angular.dev/guide/system-variables), а не дублюй hex-значення.
+// How to use it in components: take colors from the system tokens `var(--mat-sys-*)`
+// (https://material.angular.dev/guide/system-variables) instead of duplicating hex values.
 @use 'sass:map';
 @use '@angular/material' as mat;
 
-// Базова шкала сірого. Ключі — тони, яких вимагає M3-палітра.
+// Base gray scale. Keys are the tones an M3 palette requires.
 $_gray: (
   0: #000000,
   10: #1b1b1b,
@@ -29,7 +29,6 @@ $_gray: (
   100: #ffffff,
 );
 
-// Додаткові тони, потрібні лише палітрі `neutral` (рівні surface-container).
 $_gray-surface-tones: (
   4: #0e0e0e,
   6: #131313,
@@ -62,7 +61,6 @@ $_error: (
   100: #ffffff,
 );
 
-// Одна палітра для primary і tertiary; secondary теж сіра — акцентного кольору немає.
 $_grayscale-palette: map.merge(
   $_gray,
   (
@@ -73,8 +71,6 @@ $_grayscale-palette: map.merge(
   )
 );
 
-// Шрифт Material-компонентів — той самий системний стек, що й у решти застосунку (`body`
-// у styles.scss), щоб нові екрани не відрізнялися шрифтом від наявних.
 $_font-family: (system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif);
 
 @mixin theme {
@@ -83,7 +79,6 @@ $_font-family: (system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif);
       color: (
         primary: $_grayscale-palette,
         tertiary: $_grayscale-palette,
-        // Лише світла схема: без `light-dark()` і без значень для темної.
         theme-type: light,
       ),
       typography: (
@@ -92,8 +87,6 @@ $_font-family: (system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif);
       ),
       density: 0,
     ),
-    // За замовчуванням M3 бере primary з тону 40 (середньо-сірий #5e5e5e) і surface з
-    // тону 98 (#f9f9f9). Застосунок чорно-білий, тож акцент — чорний, тло — біле.
     $overrides: (
       primary: #000000,
       on-primary: #ffffff,

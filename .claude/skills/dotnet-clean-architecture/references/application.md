@@ -1,8 +1,8 @@
 # Application layer
 
-## Абстракції (порти) — `Application/Abstractions/`
+## Abstractions (ports) — `Application/Abstractions/`
 
-Інтерфейси репозиторіїв і Unit of Work живуть в Application, не в Domain — Domain лишається чистим від понять персистентності.
+Repository and Unit of Work interfaces live in Application, not in Domain — Domain stays free of persistence concepts.
 
 ```csharp
 // Abstractions/IProductRepository.cs
@@ -27,11 +27,11 @@ public interface IUnitOfWork
 }
 ```
 
-`IUnitOfWork` лишається мінімальним — лише `SaveChangesAsync`. Не розширюй його транзакційними методами без явної потреби.
+`IUnitOfWork` stays minimal — only `SaveChangesAsync`. Don't extend it with transaction methods without a clear need.
 
-## Commands і DTO — `Application/<Aggregate>/`
+## Commands and DTOs — `Application/<Aggregate>/`
 
-Командa і DTO лежать поряд із сервісом, у папці, названій на честь агрегату (`Products/`), не в окремій спільній папці `Commands/` чи `Dtos/`.
+Commands and DTOs live next to the service, in a folder named after the aggregate (`Products/`), not in a separate shared `Commands/` or `Dtos/` folder.
 
 ```csharp
 // Products/CreateProductCommand.cs
@@ -63,11 +63,11 @@ public sealed class ProductDto
 }
 ```
 
-Це звичайні `sealed class` з get-only/`init`-властивостями — **не** `record`, хоча семантично вони схожі на record. Тримайся цього стилю для консистентності, якщо явно не попросять мігрувати на records.
+These are plain `sealed class`es with get-only/`init` properties — **not** `record`s, even though semantically they resemble records. Stick to this style for consistency unless explicitly asked to migrate to records.
 
-## Сервіс — `Application/<Aggregate>/<Aggregate>Service.cs`
+## Service — `Application/<Aggregate>/<Aggregate>Service.cs`
 
-Primary constructor DI, усі публічні методи async із `CancellationToken` останнім параметром, мапінг Entity→DTO через приватний статичний `Map`:
+Primary constructor DI, all public methods async with `CancellationToken` as the last parameter, Entity→DTO mapping via a private static `Map`:
 
 ```csharp
 namespace ProductCatalog.Application.Products;
@@ -115,11 +115,11 @@ public sealed class ProductService(IProductRepository repository, IUnitOfWork un
 }
 ```
 
-## Правила
+## Rules
 
-- `sealed class`, **primary constructor** для ін'єкції залежностей — не поля + конструктор у тілі класу.
-- Сервіс не кидає HTTP-специфічних помилок (`NotFound()` тощо) — повертає `null`/кидає domain-винятки; рішення про HTTP-статус приймає контролер.
-- `null`-результат від репозиторію (сутність не знайдена) пропагується як `null` з сервісу, не як exception.
-- Мапінг Entity→DTO — приватний статичний метод `Map` у самому сервісі. Не винось у окремий mapper/AutoMapper без явного запиту — у проєкті такого немає.
-- Кожен новий агрегат отримує свою папку `Application/<Aggregate>/` з сервісом, командами й DTO разом, і рядок реєстрації в наявному `Application/DependencyInjection.cs` (`services.AddScoped<XService>();`).
-- Якщо агрегату потрібен репозиторій — новий інтерфейс у `Application/Abstractions/`, а не в Domain чи безпосередньо в Infrastructure.
+- `sealed class`, **primary constructor** for dependency injection — not fields + a constructor in the class body.
+- The service doesn't throw HTTP-specific errors (`NotFound()` etc.) — it returns `null`/throws domain exceptions; the controller decides the HTTP status.
+- A `null` result from the repository (entity not found) is propagated as `null` from the service, not as an exception.
+- Entity→DTO mapping is a private static `Map` method in the service itself. Don't move it into a separate mapper/AutoMapper without an explicit request — the project has none.
+- Each new aggregate gets its own `Application/<Aggregate>/` folder with the service, commands and DTOs together, and a registration line in the existing `Application/DependencyInjection.cs` (`services.AddScoped<XService>();`).
+- If an aggregate needs a repository — a new interface in `Application/Abstractions/`, not in Domain or directly in Infrastructure.

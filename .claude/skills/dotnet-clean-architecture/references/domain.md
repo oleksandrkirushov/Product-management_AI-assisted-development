@@ -1,8 +1,8 @@
 # Domain layer
 
-Єдина сутність у проєкті — `src/ProductCatalog.Domain/Entities/Product.cs`. Нова сутність повторює цей самий шаблон.
+The only entity in the project is `src/ProductCatalog.Domain/Entities/Product.cs`. A new entity follows this same template.
 
-## Паттерн сутності
+## Entity pattern
 
 ```csharp
 namespace ProductCatalog.Domain.Entities;
@@ -14,7 +14,7 @@ public sealed class Product
     public decimal Price { get; private set; }
     public DateTime CreatedAtUtc { get; private set; } = DateTime.UtcNow;
 
-    private Product() { } // для EF Core
+    private Product() { } // for EF Core
 
     public Product(string name, decimal price)
     {
@@ -50,21 +50,21 @@ public sealed class Product
 }
 ```
 
-## Правила
+## Rules
 
-- `sealed class` — сутності не призначені для наслідування.
-- Приватний безпараметричний конструктор `private X() { }` — потрібен EF Core для матеріалізації з БД, не використовується з коду напряму.
-- Публічний конструктор приймає сирі значення й одразу валідує їх через **guard clauses**, що кидають стандартні .NET exceptions:
-  - `ArgumentException` — порожні/надто довгі рядки, некоректний формат.
-  - `ArgumentOutOfRangeException` — числові значення поза допустимим діапазоном.
-- Властивості — `{ get; private set; }`. Зовнішній код не може змінити стан напряму, лише через явні методи (`Update(...)`).
-- Inline-дефолти на властивостях (`= Guid.NewGuid()`, `= DateTime.UtcNow`, `= string.Empty`) — а не встановлення лише в конструкторі. Якщо додаєш нову сутність з такими ж полями (Id, CreatedAtUtc) — повторюй цей стиль.
-- Методи мутації (`Update`) повторюють ту саму валідацію, що й конструктор. У цьому проєкті валідація свідомо не винесена в спільний приватний helper на 100% (історично продубльована) — якщо рефакториш, не змінюй поведінку, лише усувай дублювання обережно і за згодою.
-- Жодних атрибутів EF Core (`[Key]`, `[Required]` тощо) в Domain — вся ORM-конфігурація в Infrastructure через Fluent API.
-- Жодних посилань на Application/Infrastructure/ASP.NET — Domain не має NuGet-залежностей і не повинен їх отримати.
+- `sealed class` — entities are not intended for inheritance.
+- A private parameterless constructor `private X() { }` — needed by EF Core to materialize from the DB, not used from code directly.
+- The public constructor takes raw values and immediately validates them via **guard clauses** that throw standard .NET exceptions:
+  - `ArgumentException` — empty/too long strings, invalid format.
+  - `ArgumentOutOfRangeException` — numeric values outside the allowed range.
+- Properties are `{ get; private set; }`. External code can't change state directly, only through explicit methods (`Update(...)`).
+- Inline defaults on properties (`= Guid.NewGuid()`, `= DateTime.UtcNow`, `= string.Empty`) — rather than setting them only in the constructor. If you add a new entity with the same fields (Id, CreatedAtUtc) — follow this style.
+- Mutation methods (`Update`) repeat the same validation as the constructor. In this project validation is deliberately not 100% extracted into a shared private helper (historically duplicated) — if you refactor, don't change the behavior, only remove duplication carefully and with agreement.
+- No EF Core attributes (`[Key]`, `[Required]`, etc.) in Domain — all ORM configuration lives in Infrastructure via Fluent API.
+- No references to Application/Infrastructure/ASP.NET — Domain has no NuGet dependencies and must not get any.
 
-## Коли додаєш нову сутність (напр. `User`)
+## When adding a new entity (e.g. `User`)
 
-1. Створи `src/ProductCatalog.Domain/Entities/User.cs` за тим самим шаблоном.
-2. Визнач, які поля обов'язкові при створенні (через конструктор) і які мутуються пізніше (через окремі методи `Update...`, `ChangeX(...)` — не один загальний `Update` на все, якщо логічно поля групуються по-різному, як пароль окремо від профілю).
-3. Валідація — guard clauses у конструкторі/методах, не Data Annotations і не FluentValidation (у проєкті цього немає — не вводь нову бібліотеку без запиту).
+1. Create `src/ProductCatalog.Domain/Entities/User.cs` following the same template.
+2. Decide which fields are required at creation (via the constructor) and which are mutated later (via separate `Update...`, `ChangeX(...)` methods — not one general `Update` for everything if the fields logically group differently, like the password separately from the profile).
+3. Validation — guard clauses in the constructor/methods, not Data Annotations or FluentValidation (the project doesn't have these — don't introduce a new library without a request).

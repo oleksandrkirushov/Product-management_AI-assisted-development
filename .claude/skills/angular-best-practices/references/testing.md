@@ -1,14 +1,14 @@
-# Тестування
+# Testing
 
-## Тест-раннер
+## Test runner
 
-Перевір `angular.json` (`test` target) і `package.json`. У нових проєктах Angular 21+ за замовчуванням Vitest,
-у старіших — Karma + Jasmine. Пиши тести на тому раннері, що вже налаштований.
+Check `angular.json` (`test` target) and `package.json`. New Angular 21+ projects default to Vitest,
+older ones — Karma + Jasmine. Write tests with the runner that is already configured.
 
-**У цьому проєкті (FE/) — Karma + Jasmine.** Детальні правила й перевірені шаблони — у скілі `test-karma-jasmine`;
-він має пріоритет над прикладами нижче.
+**In this project (FE/) it's Karma + Jasmine.** Detailed rules and proven templates are in the `test-karma-jasmine` skill;
+it takes precedence over the examples below.
 
-## Тест компонента
+## Component test
 
 ```ts
 describe('ProductCardComponent', () => {
@@ -28,13 +28,13 @@ describe('ProductCardComponent', () => {
 });
 ```
 
-## Правила
+## Rules
 
-- **Тестуй поведінку, а не реалізацію:** що бачить і що робить користувач (DOM, emitted outputs), а не приватні методи.
-- Signal inputs — тільки через `fixture.componentRef.setInput()`.
-- Zoneless: після змін чекай `await fixture.whenStable()` замість покладання на `fixture.detectChanges()`.
-- Outputs — підписуйся на `fixture.componentInstance.someOutput.subscribe(...)` або перевіряй результат у батьківському test host.
-- HTTP: `provideHttpClient()` + `provideHttpClientTesting()` і `HttpTestingController`; наприкінці — `httpMock.verify()`.
-- Для компонентів Angular Material / CDK — Component Harnesses (`TestbedHarnessEnvironment`).
-- Мокай залежності через `providers: [{ provide: UserApi, useValue: mock }]`, а не через патчинг прототипів.
-- Кожен новий компонент, сервіс, guard, pipe отримує тест у файлі поруч (`*.spec.ts`).
+- **Test behavior, not implementation:** what the user sees and does (DOM, emitted outputs), not private methods.
+- Signal inputs — only via `fixture.componentRef.setInput()`.
+- Zoneless: after changes, wait for `await fixture.whenStable()` instead of relying on `fixture.detectChanges()`.
+- Outputs — subscribe to `fixture.componentInstance.someOutput.subscribe(...)` or check the result in a parent test host.
+- HTTP: `provideHttpClient()` + `provideHttpClientTesting()` and `HttpTestingController`; at the end — `httpMock.verify()`.
+- For Angular Material / CDK components — Component Harnesses (`TestbedHarnessEnvironment`).
+- Mock dependencies via `providers: [{ provide: UserApi, useValue: mock }]`, not by patching prototypes.
+- Every new component, service, guard, pipe gets a test in a file next to it (`*.spec.ts`).

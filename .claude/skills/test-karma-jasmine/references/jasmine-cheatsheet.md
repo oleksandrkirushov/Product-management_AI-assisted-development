@@ -1,23 +1,23 @@
-# Jasmine: шпаргалка
+# Jasmine: cheat sheet
 
-## Матчери
+## Matchers
 
-| Перевірка | Матчер |
+| Check | Matcher |
 |---|---|
-| Строга рівність (`===`), примітиви | `toBe(5)`, `toBeTrue()`, `toBeFalse()`, `toBeNull()`, `toBeUndefined()` |
-| Глибока рівність об'єктів / масивів | `toEqual({ id: 'p1' })` |
-| Частковий збіг | `toEqual(jasmine.objectContaining({ status: 500 }))`, `jasmine.arrayContaining([...])`, `jasmine.stringContaining('x')` |
-| Будь-яке значення типу | `jasmine.any(Number)`, `jasmine.anything()` |
-| Рядок / масив містить | `toContain('Book')` |
-| Регулярний вираз | `toMatch(/^\$10/)` |
-| Числа | `toBeGreaterThan(0)`, `toBeCloseTo(0.3, 5)` |
-| Тип / клас | `toBeInstanceOf(UrlTree)` |
-| Виняток | `expect(() => fn()).toThrowError(TypeError, 'msg')` |
-| Довжина | `toHaveSize(3)` |
-| Заперечення | `.not.toBeNull()` |
-| DOM-клас | `toHaveClass('active')` (на `Element`) |
+| Strict equality (`===`), primitives | `toBe(5)`, `toBeTrue()`, `toBeFalse()`, `toBeNull()`, `toBeUndefined()` |
+| Deep equality of objects / arrays | `toEqual({ id: 'p1' })` |
+| Partial match | `toEqual(jasmine.objectContaining({ status: 500 }))`, `jasmine.arrayContaining([...])`, `jasmine.stringContaining('x')` |
+| Any value of a type | `jasmine.any(Number)`, `jasmine.anything()` |
+| String / array contains | `toContain('Book')` |
+| Regular expression | `toMatch(/^\$10/)` |
+| Numbers | `toBeGreaterThan(0)`, `toBeCloseTo(0.3, 5)` |
+| Type / class | `toBeInstanceOf(UrlTree)` |
+| Exception | `expect(() => fn()).toThrowError(TypeError, 'msg')` |
+| Length | `toHaveSize(3)` |
+| Negation | `.not.toBeNull()` |
+| DOM class | `toHaveClass('active')` (on an `Element`) |
 
-Асинхронні (Promise):
+Async (Promise):
 
 ```ts
 await expectAsync(promise).toBeResolvedTo(value);
@@ -25,31 +25,31 @@ await expectAsync(promise).toBeRejectedWith(jasmine.objectContaining({ status: 4
 await expectAsync(promise).toBeRejectedWithError(Error, 'Not found');
 ```
 
-## Шпигуни (spies)
+## Spies
 
 ```ts
-// Мок цілого сервісу — типізований, без any
+// Mock of a whole service — typed, no any
 const api = jasmine.createSpyObj<ProductApi>('ProductApi', ['getAll', 'update']);
 api.getAll.and.returnValue(of([book]));
 api.update.and.returnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
 
-// Мок із властивостями (третій аргумент) — для сигналів стору
+// Mock with properties (third argument) — for store signals
 const store = jasmine.createSpyObj<ProductStore>('ProductStore', ['load'], {
   products: signal<Product[]>([]).asReadonly(),
 });
 
-// Шпигун на метод існуючого об'єкта
+// Spy on a method of an existing object
 spyOn(router, 'navigate').and.resolveTo(true);
-spyOn(console, 'error'); // приглушити очікувану помилку + перевірити, що її залоговано
+spyOn(console, 'error'); // silence an expected error + check that it was logged
 
-// Окрема функція-шпигун
+// Standalone spy function
 const callback = jasmine.createSpy('callback');
 ```
 
-Поведінка: `and.returnValue(v)`, `and.returnValues(a, b)`, `and.resolveTo(v)`, `and.rejectWith(err)`,
+Behavior: `and.returnValue(v)`, `and.returnValues(a, b)`, `and.resolveTo(v)`, `and.rejectWith(err)`,
 `and.callFake((x) => ...)`, `and.throwError('msg')`, `and.callThrough()`.
 
-Перевірки викликів:
+Call checks:
 
 ```ts
 expect(api.getAll).toHaveBeenCalled();
@@ -60,20 +60,20 @@ expect(api.update).not.toHaveBeenCalled();
 expect(api.update.calls.mostRecent().args[0]).toEqual(book);
 ```
 
-## Структура
+## Structure
 
 ```ts
-describe('ProductStore', () => {          // що тестуємо
-  describe('load()', () => {              // групування за методом / сценарієм
-    beforeEach(() => { /* Arrange спільне */ });
-    afterEach(() => { /* прибирання */ });
+describe('ProductStore', () => {          // what we test
+  describe('load()', () => {              // grouping by method / scenario
+    beforeEach(() => { /* shared Arrange */ });
+    afterEach(() => { /* cleanup */ });
 
     it('should ... when ...', () => {});
   });
 });
 ```
 
-- Порядок тестів **випадковий** (налаштування Jasmine за замовчуванням) — тести не мають залежати один від одного.
-  Щоб відтворити падіння, візьми `seed` із виводу Karma і задай його в `karma.conf.js` → `client.jasmine.seed`.
-- `fdescribe` / `fit` / `xdescribe` / `xit` — лише локально для налагодження, ніколи в коміт.
-- `pending('причина')` — явно позначити незавершений тест (краще, ніж `xit` без пояснення).
+- Test order is **random** (Jasmine's default setting) — tests must not depend on each other.
+  To reproduce a failure, take the `seed` from the Karma output and set it in `karma.conf.js` → `client.jasmine.seed`.
+- `fdescribe` / `fit` / `xdescribe` / `xit` — only locally for debugging, never in a commit.
+- `pending('reason')` — explicitly mark an unfinished test (better than `xit` without an explanation).

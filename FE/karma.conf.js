@@ -26,7 +26,7 @@ module.exports = function (config) {
       dir: require('path').join(__dirname, './coverage/products-audit'),
       subdir: '.',
       reporters: [{ type: 'html' }, { type: 'lcovonly' }, { type: 'text' }, { type: 'text-summary' }],
-      // Мінімальні пороги покриття: нижче — тести падають (діє з --coverage)
+      // Minimum coverage thresholds: below them tests fail (applies with --coverage)
       check: {
         global: {
           statements: 80,

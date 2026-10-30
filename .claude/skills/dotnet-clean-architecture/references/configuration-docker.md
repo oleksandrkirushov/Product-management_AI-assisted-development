@@ -1,4 +1,4 @@
-# Конфігурація та Docker
+# Configuration and Docker
 
 ## appsettings.json
 
@@ -21,14 +21,14 @@
 }
 ```
 
-- `appsettings.Development.json` переозначає лише `Logging` — більше нічого.
-- Секції зчитуються через `IConfiguration`/`IOptions<T>`: `configuration.GetConnectionString("DefaultConnection")`, `configuration.GetSection(JwtOptions.SectionName)`, `configuration["AdminSeed:Username"]`.
-- `AdminSeed` — облікові дані admin-користувача (з fallback на ті самі значення в коді), якого `Program.cs` сідить на старті **лише якщо таблиця `Users` порожня** (перший запуск); якщо є хоч один користувач — сід пропускається, нікого не створює й не змінює. Тому зміна `AdminSeed:Password` на вже наповненій БД нічого не дає.
-- Секрети (`Jwt:Key`, `AdminSeed:Password`) лежать прямо в `appsettings.json` для локальної демо-розробки, перевизначаються через env vars у Docker — не хардкодь нові секрети в код, завжди через конфігурацію з розумним fallback.
+- `appsettings.Development.json` overrides only `Logging` — nothing else.
+- Sections are read via `IConfiguration`/`IOptions<T>`: `configuration.GetConnectionString("DefaultConnection")`, `configuration.GetSection(JwtOptions.SectionName)`, `configuration["AdminSeed:Username"]`.
+- `AdminSeed` — credentials of the admin user (with a fallback to the same values in code), which `Program.cs` seeds on startup **only if the `Users` table is empty** (first run); if there is at least one user, the seed is skipped and creates or changes nothing. So changing `AdminSeed:Password` on an already populated DB has no effect.
+- Secrets (`Jwt:Key`, `AdminSeed:Password`) live directly in `appsettings.json` for local demo development and are overridden via env vars in Docker — don't hard-code new secrets in code, always go through configuration with a reasonable fallback.
 
 ## Docker
 
-`compose.yaml` передає конфігурацію через env vars із double-underscore нотацією ASP.NET Core (`Section__Key` ↔ `"Section": { "Key": ... }`):
+`compose.yaml` passes configuration via env vars using ASP.NET Core's double-underscore notation (`Section__Key` ↔ `"Section": { "Key": ... }`):
 
 ```yaml
 services:
@@ -55,36 +55,36 @@ volumes:
   sqlserver-data:
 ```
 
-- Змінні `${VAR:-default}` беруться з `BE/.env` (шаблон — `BE/.env.example`: `SA_PASSWORD`, `JWT_KEY`, `ADMIN_SEED_PASSWORD`).
-- Дані БД живуть у named volume `sqlserver-data` (повне ім'я `be_sqlserver-data`) — він переживає `docker compose down`/`stop`, але не видалення тому (див. заборони нижче).
-- Якщо додаєш нову секцію конфігурації (напр. для нового Options-класу) — дотримуйся того ж паттерна: fallback-значення в `compose.yaml` через `${VAR:-default}`, double-underscore для вкладених ключів.
-- **Важливо:** всередині shell-команд у `healthcheck`/`CMD-SHELL` змінні, що мають розгортатись, беруться в **подвійні** лапки (`"$${VAR}"`), не одинарні — одинарні лапки в shell блокують expansion (на цьому проєкт уже раз ловив баг).
-- `Dockerfile` — multi-stage: `sdk:10.0` для build/publish → `aspnet:10.0` для рантайму. Копіює спочатку `.csproj`+`.sln` окремим шаром (кешування `dotnet restore`), потім решту коду.
-- `BE/backups/` (бекапи тому, див. нижче) виключено і з git (`BE/.gitignore`), і з Docker build context (`BE/.dockerignore`) — інакше багатомегабайтні архіви з даними БД потрапляли б у контекст збірки образу.
+- `${VAR:-default}` variables come from `BE/.env` (template — `BE/.env.example`: `SA_PASSWORD`, `JWT_KEY`, `ADMIN_SEED_PASSWORD`).
+- DB data lives in the named volume `sqlserver-data` (full name `be_sqlserver-data`) — it survives `docker compose down`/`stop`, but not deletion of the volume (see the prohibitions below).
+- If you add a new configuration section (e.g. for a new Options class) — follow the same pattern: fallback values in `compose.yaml` via `${VAR:-default}`, double underscore for nested keys.
+- **Important:** inside shell commands in `healthcheck`/`CMD-SHELL`, variables that must expand are wrapped in **double** quotes (`"$${VAR}"`), not single ones — single quotes in the shell block expansion (the project has already hit this bug once).
+- `Dockerfile` — multi-stage: `sdk:10.0` for build/publish → `aspnet:10.0` for runtime. It copies `.csproj`+`.sln` first as a separate layer (caching `dotnet restore`), then the rest of the code.
+- `BE/backups/` (volume backups, see below) is excluded both from git (`BE/.gitignore`) and from the Docker build context (`BE/.dockerignore`) — otherwise multi-megabyte archives with DB data would end up in the image build context.
 
-## Запуск локально
+## Running locally
 
 ```bash
 cd BE
-docker compose up --build        # перший запуск / після зміни залежностей
-docker compose up                 # повторний запуск без ребілду
-docker compose down               # зупинити без видалення даних
+docker compose up --build        # first run / after dependency changes
+docker compose up                 # subsequent run without a rebuild
+docker compose down               # stop without deleting data
 ```
 
-## Бекап тому SQL Server перед міграцією чи перезбиркою API
+## Backing up the SQL Server volume before a migration or API rebuild
 
-`Program.cs` на старті застосовує всі непрозастосовані міграції (`MigrateAsync`), тож будь-який
-`docker compose up --build api` може змінити схему живої БД. Перед ним (і перед будь-якою ручною дією над БД):
+`Program.cs` applies all pending migrations on startup (`MigrateAsync`), so any
+`docker compose up --build api` can change the schema of the live DB. Before it (and before any manual action on the DB):
 
-- **Заборонено** видаляти том чи витирати БД: жодних `docker compose down -v` (`-v` видаляє named volume з усіма
-  даними), `docker volume rm`, `DROP DATABASE`.
-- Зроби бекап тому `be_sqlserver-data` (ім'я = `<project>_sqlserver-data`, project за замовчуванням — `be`)
-  у `BE/backups/` (у `.gitignore` і `.dockerignore`), ім'я `sqlserver-volume-<yyyyMMdd-HHmmss>.tar.gz`.
-  Контейнери зупиняються через `stop` (не `down`), щоб файли `.mdf/.ldf` були консистентні.
+- It is **forbidden** to delete the volume or wipe the DB: no `docker compose down -v` (`-v` deletes the named volume with all
+  data), `docker volume rm`, `DROP DATABASE`.
+- Back up the `be_sqlserver-data` volume (name = `<project>_sqlserver-data`, the default project is `be`)
+  to `BE/backups/` (in `.gitignore` and `.dockerignore`), named `sqlserver-volume-<yyyyMMdd-HHmmss>.tar.gz`.
+  Containers are stopped with `stop` (not `down`) so that the `.mdf/.ldf` files are consistent.
 
-Блок нижче — **одна команда** (усе з'єднано через `&&`): виконуй її одним викликом shell, бо змінна `TS` не
-переживає окремих викликів, а будь-яка помилка (не зупинився контейнер, не створився архів, в архіві немає
-файлів БД) має зупинити все до `up --build`, тобто до застосування міграцій:
+The block below is **one command** (everything chained with `&&`): run it in a single shell call, because the `TS` variable doesn't
+survive separate calls, and any error (the container didn't stop, the archive wasn't created, the archive has no
+DB files) must stop everything before `up --build`, i.e. before migrations are applied:
 
 ```bash
 cd BE && TS=$(date +%Y%m%d-%H%M%S) && mkdir -p backups && \
@@ -97,14 +97,14 @@ cd BE && TS=$(date +%Y%m%d-%H%M%S) && mkdir -p backups && \
   docker compose up -d --build api
 ```
 
-- Застосування міграцій видно в `docker compose logs api` (`Applying migration ...` або
+- Applied migrations are visible in `docker compose logs api` (`Applying migration ...` or
   `No migrations were applied. The database is already up to date.`).
 
-### Відновлення з бекапу — лише свідомо, за погодженням з користувачем
+### Restoring from a backup — only deliberately, with the user's agreement
 
-Відновлення замінює поточний вміст тому. Тому спершу переконайся, що обраний архів читається, потім зроби бекап
-**поточного** стану (той самий скрипт, що вище, але без `docker compose up`), і лише тоді очищай том і розпаковуй.
-Знову одна команда через `&&` — при будь-якій помилці (зокрема якщо в архіві немає файлів БД) том не чіпається. `RESTORE` — ім'я файла в `BE/backups/`; значення нижче — лише приклад, **заміни на свій файл**:
+Restoring replaces the current contents of the volume. So first make sure the chosen archive is readable, then back up
+the **current** state (the same script as above, but without `docker compose up`), and only then clear the volume and extract.
+Again a single command chained with `&&` — on any error (in particular if the archive has no DB files) the volume isn't touched. `RESTORE` is the file name in `BE/backups/`; the value below is only an example, **replace it with your file**:
 
 ```bash
 cd BE && RESTORE=sqlserver-volume-20261029-151609.tar.gz && \

@@ -1,29 +1,29 @@
-# Продуктивність і доступність
+# Performance and accessibility
 
-## Продуктивність
+## Performance
 
-- **Zoneless change detection** (дефолт у нових проєктах Angular 21+; у старіших — `provideZonelessChangeDetection()`).
-  Код має коректно оновлюватись без Zone.js: стан у signals, OnPush, без покладання на `setTimeout` для оновлення view.
-- **OnPush** на всіх компонентах (дефолт в Angular 22+; не перемикай на `Eager`).
-- **Lazy routes** для кожної фічі, `@defer` для важких блоків.
-- `track` за стабільним id у кожному `@for`.
-- Без викликів методів у шаблонах — `computed()` мемоізує.
-- `NgOptimizedImage` для зображень, `priority` для LCP.
-- Слідкуй за **budgets** в `angular.json`; не імпортуй цілі бібліотеки (`import _ from 'lodash'`) — лише потрібні функції або нативні аналоги.
-- Важкі обчислення — у Web Worker (`ng generate web-worker`).
-- SSR / hydration — якщо налаштовані в проєкті: не звертайся до `window`/`document` поза `afterNextRender()`; використовуй `withIncrementalHydration()` разом із `@defer (hydrate on ...)`.
+- **Zoneless change detection** (the default in new Angular 21+ projects; in older ones — `provideZonelessChangeDetection()`).
+  Code must update correctly without Zone.js: state in signals, OnPush, no relying on `setTimeout` to update the view.
+- **OnPush** on all components (the default in Angular 22+; don't switch to `Eager`).
+- **Lazy routes** for every feature, `@defer` for heavy blocks.
+- `track` by a stable id in every `@for`.
+- No method calls in templates — `computed()` memoizes.
+- `NgOptimizedImage` for images, `priority` for the LCP image.
+- Watch the **budgets** in `angular.json`; don't import whole libraries (`import _ from 'lodash'`) — only the functions you need or native equivalents.
+- Heavy computations — in a Web Worker (`ng generate web-worker`).
+- SSR / hydration — if configured in the project: don't access `window`/`document` outside `afterNextRender()`; use `withIncrementalHydration()` together with `@defer (hydrate on ...)`.
 
-## Доступність (WCAG 2.2 AA)
+## Accessibility (WCAG 2.2 AA)
 
-Код має проходити автоматичні перевірки AXE і відповідати WCAG AA.
+Code must pass automated AXE checks and meet WCAG AA.
 
-- **Семантичний HTML:** `<button>` для дій, `<a routerLink>` для навігації, `<nav>`, `<main>`, `<header>`, заголовки `h1–h6` по порядку.
-  Не роби `<div (click)>`.
-- **Клавіатура:** усе інтерактивне досяжне через Tab, видимий фокус (`:focus-visible`), без пасток фокусу.
-- **Доступні назви:** кнопки-іконки мають `aria-label`; зображення — змістовний `alt` (або `alt=""` для декоративних).
-- **Форми:** `<label>` для кожного поля, помилки через `aria-describedby` / `role="alert"`.
-- **Контраст:** текст ≥ 4.5:1, великий текст і UI-елементи ≥ 3:1.
-- **Динамічний контент:** `LiveAnnouncer` з `@angular/cdk/a11y` для оголошення змін.
-- **Модалки та меню:** `FocusTrap` / CDK Overlay / Angular Aria; повертай фокус після закриття.
-- **Маршрути:** унікальний `title` для кожної сторінки.
-- Не використовуй ARIA там, де вистачає нативного елемента.
+- **Semantic HTML:** `<button>` for actions, `<a routerLink>` for navigation, `<nav>`, `<main>`, `<header>`, `h1–h6` headings in order.
+  Don't use `<div (click)>`.
+- **Keyboard:** everything interactive is reachable via Tab, visible focus (`:focus-visible`), no focus traps.
+- **Accessible names:** icon buttons have `aria-label`; images have a meaningful `alt` (or `alt=""` for decorative ones).
+- **Forms:** a `<label>` for every field, errors via `aria-describedby` / `role="alert"`.
+- **Contrast:** text ≥ 4.5:1, large text and UI elements ≥ 3:1.
+- **Dynamic content:** `LiveAnnouncer` from `@angular/cdk/a11y` to announce changes.
+- **Modals and menus:** `FocusTrap` / CDK Overlay / Angular Aria; return focus after closing.
+- **Routes:** a unique `title` for every page.
+- Don't use ARIA where a native element is enough.

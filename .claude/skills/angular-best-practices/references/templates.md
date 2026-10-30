@@ -1,4 +1,4 @@
-# Шаблони
+# Templates
 
 ## Control flow
 
@@ -6,13 +6,13 @@
 @if (user(); as user) {
   <app-avatar [user]="user" />
 } @else {
-  <a routerLink="/login">Увійти</a>
+  <a routerLink="/login">Sign in</a>
 }
 
 @for (item of items(); track item.id) {
   <app-item [item]="item" />
 } @empty {
-  <p>Список порожній</p>
+  <p>The list is empty</p>
 }
 
 @switch (status()) {
@@ -22,19 +22,19 @@
 }
 ```
 
-- Використовуй `@if` / `@for` / `@switch`, а не `*ngIf` / `*ngFor` / `ngSwitch`.
-- У `@for` **завжди** вказуй `track` за стабільним ідентифікатором (`item.id`). `track $index` — лише для статичних списків.
-- `@let` — для локальних змінних у шаблоні замість повторних викликів сигналів.
+- Use `@if` / `@for` / `@switch`, not `*ngIf` / `*ngFor` / `ngSwitch`.
+- In `@for` **always** specify `track` by a stable identifier (`item.id`). `track $index` — only for static lists.
+- `@let` — for local variables in the template instead of repeated signal reads.
 
-## Біндинги
+## Bindings
 
-- `[class.active]="isActive()"` та `[style.width.px]="width()"` замість `ngClass` / `ngStyle`.
-- Самозакривні теги для компонентів: `<app-item />`.
-- Не викликай методи в шаблоні (`{{ getTotal() }}`) — винеси в `computed()`. Читання сигналів (`total()`) — ок.
-- Не пиши складну логіку в шаблоні — тернарні ланцюжки, фільтрацію тощо переноси в `computed()`.
-- Для Observable в шаблоні — `async` pipe або (краще) `toSignal()` у класі.
+- `[class.active]="isActive()"` and `[style.width.px]="width()"` instead of `ngClass` / `ngStyle`.
+- Self-closing tags for components: `<app-item />`.
+- Don't call methods in the template (`{{ getTotal() }}`) — move it to `computed()`. Reading signals (`total()`) is fine.
+- Don't write complex logic in the template — move ternary chains, filtering, etc. into `computed()`.
+- For Observables in the template — the `async` pipe or (better) `toSignal()` in the class.
 
-## Відкладене завантаження
+## Deferred loading
 
 ```html
 @defer (on viewport) {
@@ -46,11 +46,11 @@
 }
 ```
 
-- `@defer` — для важких компонентів нижче першого екрана, у вкладках, модалках.
-- Тригери: `on viewport`, `on interaction`, `on idle` (дефолт), `when condition()`.
+- `@defer` — for heavy components below the fold, in tabs, in modals.
+- Triggers: `on viewport`, `on interaction`, `on idle` (default), `when condition()`.
 
-## Зображення
+## Images
 
-- Статичні зображення — `NgOptimizedImage`: `<img ngSrc="..." width="..." height="..." />`.
-- `priority` для LCP-зображення (головний банер).
-- `NgOptimizedImage` не працює з inline base64.
+- Static images — `NgOptimizedImage`: `<img ngSrc="..." width="..." height="..." />`.
+- `priority` for the LCP image (main banner).
+- `NgOptimizedImage` doesn't work with inline base64.

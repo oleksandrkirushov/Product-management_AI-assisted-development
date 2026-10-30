@@ -30,8 +30,8 @@ describe('AdminLayoutComponent', () => {
   }
 
   /**
-   * RouterLinkActive оновлює стан у microtask після навігації й лише тоді викликає markForCheck,
-   * тому після навігації чекаємо ще один цикл стабілізації.
+   * RouterLinkActive updates its state in a microtask after navigation and only then calls markForCheck,
+   * so after navigation we wait for one more stabilization cycle.
    */
   async function navigate(url: string): Promise<void> {
     await harness.navigateByUrl(url);

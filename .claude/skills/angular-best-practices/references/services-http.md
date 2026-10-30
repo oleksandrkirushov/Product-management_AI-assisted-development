@@ -1,36 +1,36 @@
-# Сервіси, DI та HTTP
+# Services, DI and HTTP
 
 ## Dependency injection
 
-- `inject()` замість ін'єкції через конструктор:
+- `inject()` instead of constructor injection:
   ```ts
   export class UserPageComponent {
     private readonly userApi = inject(UserApi);
     private readonly router = inject(Router);
   }
   ```
-- `@Injectable({ providedIn: 'root' })` для singleton-сервісів (tree-shakable).
-- Сервіс із локальним станом компонента — у `providers: [...]` цього компонента.
-- Конфігурація та не-класові залежності — через `InjectionToken`:
+- `@Injectable({ providedIn: 'root' })` for singleton services (tree-shakable).
+- A service with component-local state goes in that component's `providers: [...]`.
+- Configuration and non-class dependencies — via `InjectionToken`:
   ```ts
   export const API_URL = new InjectionToken<string>('API_URL');
   ```
-- Один сервіс — одна відповідальність: `UserApi` (HTTP), `UserStore` (стан), а не один `UserService` на все.
+- One service — one responsibility: `UserApi` (HTTP), `UserStore` (state), rather than one `UserService` for everything.
 
 ## HTTP
 
-- Налаштування в `app.config.ts`:
+- Setup in `app.config.ts`:
   ```ts
   provideHttpClient(withFetch(), withInterceptors([authInterceptor, errorInterceptor]))
   ```
-- Interceptors — функціональні (`HttpInterceptorFn`), не класові:
+- Interceptors are functional (`HttpInterceptorFn`), not class-based:
   ```ts
   export const authInterceptor: HttpInterceptorFn = (req, next) => {
     const token = inject(AuthStore).token();
     return next(token ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }) : req);
   };
   ```
-- Завжди типізуй відповіді: `http.get<User[]>(...)`. Опиши моделі API в окремих файлах у `features/models/`.
-- Компоненти не викликають `HttpClient` напряму — лише через API-сервіси.
-- URL бекенду не хардкодь — бери з `environment` або `InjectionToken`.
-- Обробка помилок: загальна (401, 5xx) — в interceptor; специфічна для екрана — у місці виклику.
+- Always type responses: `http.get<User[]>(...)`. Describe API models in separate files in `features/models/`.
+- Components don't call `HttpClient` directly — only through API services.
+- Don't hard-code the backend URL — take it from `environment` or an `InjectionToken`.
+- Error handling: general (401, 5xx) — in an interceptor; screen-specific — at the call site.

@@ -1,74 +1,74 @@
 ---
 name: angular-best-practices
-description: Сучасні best practices Angular (v20+) — standalone-компоненти, signals, OnPush, вбудований control flow (@if/@for/@defer), inject(), lazy loading, typed reactive forms, httpResource, тестування, доступність і структура проєкту. Використовуй щоразу, коли пишеш, змінюєш або рев'юїш Angular-код — компоненти, сервіси, директиви, пайпи, роутинг, форми, HTTP, тести.
+description: Modern Angular (v20+) best practices — standalone components, signals, OnPush, built-in control flow (@if/@for/@defer), inject(), lazy loading, typed reactive forms, httpResource, testing, accessibility and project structure. Use every time you write, change or review Angular code — components, services, directives, pipes, routing, forms, HTTP, tests.
 ---
 
 # Angular best practices
 
-## Перед початком роботи
-1. Перевір версію Angular у `package.json` (`@angular/core`) і налаштування в `angular.json`.
-   Правила нижче розраховані на Angular 20+. Якщо версія старша — не використовуй API, яких у ній ще немає.
-2. Подивись, як уже написаний сусідній код. **Існуючі конвенції проєкту мають пріоритет** над цим скілом
-   (наприклад, суфікси файлів, тест-раннер, state-менеджер).
-3. Генеруй каркаси через Angular CLI: `npx ng generate component|service|guard|pipe|directive ...`.
+## Before you start
+1. Check the Angular version in `package.json` (`@angular/core`) and the settings in `angular.json`.
+   The rules below target Angular 20+. If the version is older — don't use APIs it doesn't have yet.
+2. Look at how the neighboring code is already written. **Existing project conventions take precedence** over this skill
+   (for example, file suffixes, test runner, state manager).
+3. Generate scaffolds with the Angular CLI: `npx ng generate component|service|guard|pipe|directive ...`.
 
-## Ключові правила (коротко)
+## Key rules (summary)
 
 ### TypeScript
-- Strict mode. Без `any` — використовуй `unknown` + звуження типів.
-- Покладайся на виведення типів, якщо тип очевидний.
+- Strict mode. No `any` — use `unknown` + type narrowing.
+- Rely on type inference when the type is obvious.
 
-### Компоненти → [references/components.md](references/components.md)
-- Тільки standalone. **Не пиши `standalone: true`** — це дефолт з v19.
-- OnPush: в Angular 22+ це стратегія за замовчуванням — **не вказуй `changeDetection`**.
-  У версіях до 22 завжди додавай `changeDetection: ChangeDetectionStrategy.OnPush`.
-  `ChangeDetectionStrategy.Eager` не використовуй.
-- `input()`, `input.required()`, `output()`, `model()` замість декораторів `@Input`/`@Output`.
-- `viewChild()`/`contentChild()` замість `@ViewChild`/`@ContentChild`.
-- Host-біндинги — в об'єкті `host` декоратора, а не `@HostBinding`/`@HostListener`.
-- Маленькі, з однією відповідальністю; розділяй smart (контейнер) і presentational.
+### Components → [references/components.md](references/components.md)
+- Standalone only. **Don't write `standalone: true`** — it's the default since v19.
+- OnPush: in Angular 22+ it's the default strategy — **don't specify `changeDetection`**.
+  In versions before 22 always add `changeDetection: ChangeDetectionStrategy.OnPush`.
+  Don't use `ChangeDetectionStrategy.Eager`.
+- `input()`, `input.required()`, `output()`, `model()` instead of the `@Input`/`@Output` decorators.
+- `viewChild()`/`contentChild()` instead of `@ViewChild`/`@ContentChild`.
+- Host bindings go in the decorator's `host` object, not `@HostBinding`/`@HostListener`.
+- Small, single-responsibility; separate smart (container) and presentational components.
 
-### Шаблони → [references/templates.md](references/templates.md)
-- Вбудований control flow: `@if`, `@for` (з обов'язковим `track`), `@switch`. Не `*ngIf`/`*ngFor`.
-- `[class.x]` / `[style.x]` замість `ngClass` / `ngStyle`.
-- Жодної складної логіки й викликів методів у шаблоні — лише signals і `computed()`.
-- `@defer` для важких частин сторінки нижче першого екрана.
-- `NgOptimizedImage` (`ngSrc`) для статичних зображень.
+### Templates → [references/templates.md](references/templates.md)
+- Built-in control flow: `@if`, `@for` (with a mandatory `track`), `@switch`. Not `*ngIf`/`*ngFor`.
+- `[class.x]` / `[style.x]` instead of `ngClass` / `ngStyle`.
+- No complex logic or method calls in the template — only signals and `computed()`.
+- `@defer` for heavy parts of the page below the fold.
+- `NgOptimizedImage` (`ngSrc`) for static images.
 
-### Стан і signals → [references/signals-state.md](references/signals-state.md)
-- Локальний стан — `signal()`, похідний — `computed()`.
-- Змінюй стан через `set()`/`update()`, ніколи не мутуй об'єкти всередині сигналу.
-- `effect()` — лише для side effects (логування, localStorage, DOM), **не** для синхронізації стану.
-- Для асинхронних даних — `resource()`/`httpResource()` або RxJS + `toSignal()`.
+### State and signals → [references/signals-state.md](references/signals-state.md)
+- Local state — `signal()`, derived state — `computed()`.
+- Change state via `set()`/`update()`, never mutate objects inside a signal.
+- `effect()` — only for side effects (logging, localStorage, DOM), **not** for state synchronization.
+- For async data — `resource()`/`httpResource()` or RxJS + `toSignal()`.
 
-### Сервіси, DI, HTTP → [references/services-http.md](references/services-http.md)
-- `inject()` замість constructor injection.
-- `providedIn: 'root'` для singleton-сервісів.
-- Функціональні interceptors (`withInterceptors`), `provideHttpClient(withFetch())`.
+### Services, DI, HTTP → [references/services-http.md](references/services-http.md)
+- `inject()` instead of constructor injection.
+- `providedIn: 'root'` for singleton services.
+- Functional interceptors (`withInterceptors`), `provideHttpClient(withFetch())`.
 
-### Роутинг → [references/routing.md](references/routing.md)
-- Lazy loading фіч: `loadComponent` / `loadChildren`.
-- Функціональні guards і resolvers (`CanActivateFn`, `ResolveFn`).
+### Routing → [references/routing.md](references/routing.md)
+- Lazy loading of features: `loadComponent` / `loadChildren`.
+- Functional guards and resolvers (`CanActivateFn`, `ResolveFn`).
 
-### Форми → [references/forms.md](references/forms.md)
-- Typed reactive forms (`NonNullableFormBuilder`) замість template-driven для нетривіальних форм.
+### Forms → [references/forms.md](references/forms.md)
+- Typed reactive forms (`NonNullableFormBuilder`) instead of template-driven for non-trivial forms.
 
-### Тестування → [references/testing.md](references/testing.md)
-- Тестуй поведінку через DOM, а не приватні методи.
-- Сигнальні inputs — через `fixture.componentRef.setInput()`.
+### Testing → [references/testing.md](references/testing.md)
+- Test behavior through the DOM, not private methods.
+- Signal inputs — via `fixture.componentRef.setInput()`.
 
-### Продуктивність і доступність → [references/performance-a11y.md](references/performance-a11y.md)
-- Код має проходити перевірки AXE і відповідати WCAG AA.
+### Performance and accessibility → [references/performance-a11y.md](references/performance-a11y.md)
+- Code must pass AXE checks and meet WCAG AA.
 - Zoneless + OnPush + signals; lazy routes; `@defer`.
 
-### Структура проєкту → [references/project-structure.md](references/project-structure.md)
-- Організація за фічами, а не за типами файлів.
-- Один компонент/сервіс на файл; `kebab-case` імена файлів.
+### Project structure → [references/project-structure.md](references/project-structure.md)
+- Organize by feature, not by file type.
+- One component/service per file; `kebab-case` file names.
 
-## Чеклист перед завершенням задачі
-- [ ] `npx ng build` проходить без помилок і нових warnings.
-- [ ] Тести для нового/зміненого коду написані й проходять (`npm run test:ci`, правила — скіл `test-karma-jasmine`).
-- [ ] Лінтер чистий (`npx ng lint`, якщо налаштований).
-- [ ] Немає `any`, `*ngIf`/`*ngFor`, `@Input`/`@Output`, constructor injection у новому коді.
-- [ ] Жоден новий компонент не використовує `Eager` (а в Angular < 22 кожен має явний `OnPush`).
-- [ ] Інтерактивні елементи доступні з клавіатури та мають доступні назви.
+## Checklist before finishing a task
+- [ ] `npx ng build` passes with no errors and no new warnings.
+- [ ] Tests for new/changed code are written and pass (`npm run test:ci`, rules — the `test-karma-jasmine` skill).
+- [ ] The linter is clean (`npx ng lint`, if configured).
+- [ ] No `any`, `*ngIf`/`*ngFor`, `@Input`/`@Output`, constructor injection in new code.
+- [ ] No new component uses `Eager` (and in Angular < 22 each one has an explicit `OnPush`).
+- [ ] Interactive elements are keyboard accessible and have accessible names.

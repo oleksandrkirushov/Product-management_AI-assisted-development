@@ -1,6 +1,6 @@
-# Роутинг
+# Routing
 
-## Конфігурація
+## Configuration
 
 ```ts
 // app.config.ts
@@ -8,7 +8,7 @@ provideRouter(routes, withComponentInputBinding(), withViewTransitions())
 
 // app.routes.ts
 export const routes: Routes = [
-  { path: '', loadComponent: () => import('./features/home/home-page/home-page.component').then(m => m.HomePageComponent), title: 'Головна' },
+  { path: '', loadComponent: () => import('./features/home/home-page/home-page.component').then(m => m.HomePageComponent), title: 'Home' },
   {
     path: 'admin',
     canMatch: [adminGuard],
@@ -18,18 +18,18 @@ export const routes: Routes = [
 ];
 ```
 
-## Правила
+## Rules
 
-- **Lazy loading для кожної фічі:** `loadComponent` для окремої сторінки, `loadChildren` для групи маршрутів фічі.
-- **Функціональні guards і resolvers:**
+- **Lazy loading for every feature:** `loadComponent` for a single page, `loadChildren` for a group of feature routes.
+- **Functional guards and resolvers:**
   ```ts
   export const authGuard: CanActivateFn = () => {
     const auth = inject(AuthStore);
     return auth.isLoggedIn() || inject(Router).createUrlTree(['/login']);
   };
   ```
-  Повертай `UrlTree` для редиректу замість `router.navigate()` усередині guard.
-- `canMatch` — щоб недоступний модуль навіть не завантажувався.
-- **Параметри маршруту як inputs:** з `withComponentInputBinding()` параметри `:id`, query params і дані resolver'а приходять у `input()` компонента-сторінки.
-- Задавай `title` для кожного маршруту (доступність і SEO).
-- Навігація в шаблоні — `routerLink`, а не `(click)` + `router.navigate()`.
+  Return a `UrlTree` for redirects instead of calling `router.navigate()` inside a guard.
+- `canMatch` — so that an inaccessible module isn't even loaded.
+- **Route parameters as inputs:** with `withComponentInputBinding()`, `:id` params, query params and resolver data arrive in the page component's `input()`.
+- Set a `title` for every route (accessibility and SEO).
+- Navigation in the template — `routerLink`, not `(click)` + `router.navigate()`.

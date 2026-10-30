@@ -1,5 +1,5 @@
-# Загальні правила для всього репозиторію.
-# Специфічні для частин — у FE/.gitignore (і BE/.gitignore).
+# General rules for the whole repository.
+# Part-specific rules live in FE/.gitignore (and BE/.gitignore).
 
 # System files
 .DS_Store
@@ -10,7 +10,7 @@ Thumbs.db
 .env.*
 !.env.example
 
-# Claude Code — локальні налаштування користувача
+# Claude Code — user's local settings
 .claude/settings.local.json
 
 # IDEs

@@ -1,6 +1,6 @@
-# Компоненти
+# Components
 
-## Еталонний компонент
+## Reference component
 
 ```ts
 import { Component, computed, input, output } from '@angular/core';
@@ -18,7 +18,7 @@ import { Product } from '@features/models/product';
     <h3>{{ product().name }}</h3>
     <p>{{ product().price | currency }}</p>
     <button type="button" [disabled]="soldOut()" (click)="addToCart.emit(product().id)">
-      Додати в кошик
+      Add to cart
     </button>
   `,
 })
@@ -30,24 +30,24 @@ export class ProductCardComponent {
 }
 ```
 
-## Правила
+## Rules
 
-- **Standalone за замовчуванням.** Не додавай `standalone: true`. Не створюй `NgModule` для нових фіч.
-- **OnPush завжди.** В Angular 22+ це дефолт — `changeDetection` не вказуємо (приклад вище — для v22+).
-  У версіях до 22 — явно `changeDetection: ChangeDetectionStrategy.OnPush`. Разом із signals це дає передбачуване й швидке оновлення.
-- **Inputs/outputs як функції:**
-  - `input<T>()` / `input.required<T>()` — замість `@Input()`.
-  - `input(..., { transform: booleanAttribute })` — для boolean-атрибутів.
-  - `output<T>()` — замість `@Output() new EventEmitter()`.
-  - `model<T>()` — для двостороннього зв'язування `[(value)]`.
-- **Queries як сигнали:** `viewChild()`, `viewChild.required()`, `viewChildren()`, `contentChild()`.
-- **Host-біндинги** — в об'єкті `host`, не `@HostBinding` / `@HostListener`.
-- **Члени, які використовуються лише в шаблоні,** — `protected`; inputs/outputs/queries — `readonly`.
-- **Шаблон:** inline для маленьких компонентів (до ~10 рядків), інакше `templateUrl`/`styleUrl` з відносними шляхами.
-- **Розділяй відповідальність:**
-  - *Presentational* — отримує дані через inputs, повідомляє через outputs, не інжектить data-сервіси.
-  - *Smart / container* (зазвичай сторінка) — інжектить сервіси, тримає стан, передає дані вниз.
-- **Життєвий цикл:**
-  - Робота з DOM після рендера — `afterNextRender()` / `afterRenderEffect()`, а не `ngAfterViewInit` + `setTimeout`.
-  - Відписки — `takeUntilDestroyed()` або `DestroyRef.onDestroy()`, а не ручний `ngOnDestroy` + `Subject`.
-- **Не звертайся до DOM напряму** (`document.querySelector`) — використовуй `viewChild` і `Renderer2` / біндинги.
+- **Standalone by default.** Don't add `standalone: true`. Don't create an `NgModule` for new features.
+- **Always OnPush.** In Angular 22+ it's the default — we don't specify `changeDetection` (the example above is for v22+).
+  In versions before 22 — explicitly `changeDetection: ChangeDetectionStrategy.OnPush`. Together with signals this gives predictable and fast updates.
+- **Inputs/outputs as functions:**
+  - `input<T>()` / `input.required<T>()` — instead of `@Input()`.
+  - `input(..., { transform: booleanAttribute })` — for boolean attributes.
+  - `output<T>()` — instead of `@Output() new EventEmitter()`.
+  - `model<T>()` — for two-way binding `[(value)]`.
+- **Queries as signals:** `viewChild()`, `viewChild.required()`, `viewChildren()`, `contentChild()`.
+- **Host bindings** — in the `host` object, not `@HostBinding` / `@HostListener`.
+- **Members used only in the template** are `protected`; inputs/outputs/queries are `readonly`.
+- **Template:** inline for small components (up to ~10 lines), otherwise `templateUrl`/`styleUrl` with relative paths.
+- **Separate responsibilities:**
+  - *Presentational* — receives data via inputs, communicates via outputs, doesn't inject data services.
+  - *Smart / container* (usually a page) — injects services, holds state, passes data down.
+- **Lifecycle:**
+  - DOM work after rendering — `afterNextRender()` / `afterRenderEffect()`, not `ngAfterViewInit` + `setTimeout`.
+  - Unsubscribing — `takeUntilDestroyed()` or `DestroyRef.onDestroy()`, not a manual `ngOnDestroy` + `Subject`.
+- **Don't access the DOM directly** (`document.querySelector`) — use `viewChild` and `Renderer2` / bindings.
