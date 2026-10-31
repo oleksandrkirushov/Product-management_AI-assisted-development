@@ -1,9 +1,12 @@
+@use 'variables' as vars;
+@use 'mixins';
+
 :host {
   display: block;
 }
 
 .page-title {
-  margin: 0 0 1rem;
+  margin: 0 0 vars.$space-lg;
   font: var(--mat-sys-headline-small);
   color: var(--mat-sys-on-surface);
 
@@ -14,7 +17,7 @@
 }
 
 .state {
-  margin: 0;
+  // Margin comes from the global `.state`; colours (incl. `--error`) follow the Material theme.
   color: var(--mat-sys-on-surface-variant);
 
   &--error {
@@ -26,12 +29,12 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.75rem;
+  gap: vars.$space-md;
 }
 
 .action-error {
-  margin: 0 0 1rem;
-  padding: 0.75rem 1rem;
+  margin: 0 0 vars.$space-lg;
+  padding: vars.$space-md vars.$space-lg;
   color: var(--mat-sys-on-error-container);
   background: var(--mat-sys-error-container);
   border-radius: var(--mat-sys-corner-small);
@@ -49,7 +52,7 @@
 
   th,
   td {
-    padding: 0.5rem 0.75rem;
+    padding: vars.$space-sm vars.$space-md;
     text-align: left;
     vertical-align: middle;
     border-bottom: 1px solid var(--mat-sys-outline-variant);
@@ -62,7 +65,7 @@
   }
 
   &__username {
-    font-weight: 500;
+    font-weight: vars.$font-weight-medium;
     white-space: nowrap;
   }
 
@@ -85,8 +88,8 @@
 
 .badge {
   display: inline-block;
-  margin-left: 0.5rem;
-  padding: 0 0.5rem;
+  margin-left: vars.$space-sm;
+  padding: 0 vars.$space-sm;
   font: var(--mat-sys-label-small);
   border-radius: var(--mat-sys-corner-small);
   vertical-align: middle;
@@ -105,20 +108,14 @@
 .permissions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.25rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  gap: vars.$space-xs;
+  @include mixins.reset-list;
 
   &__item {
-    padding: 0.125rem 0.5rem;
+    padding: vars.$space-2xs vars.$space-sm;
     font: var(--mat-sys-label-medium);
     color: var(--mat-sys-on-surface-variant);
     background: var(--mat-sys-surface-container-high);
     border-radius: var(--mat-sys-corner-small);
   }
-}
-
-.muted {
-  color: var(--mat-sys-on-surface-variant);
 }

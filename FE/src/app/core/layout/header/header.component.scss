@@ -1,3 +1,5 @@
+@use 'variables' as vars;
+@use 'mixins';
 
 .app-header {
   --app-header-bg: var(--mat-sys-primary);
@@ -12,8 +14,8 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.75rem;
-  padding: 0.5rem 1rem;
+  gap: vars.$space-md;
+  padding: vars.$space-lg;
   color: var(--app-header-fg);
   background: var(--app-header-bg);
   border-bottom: 1px solid var(--app-header-fg);
@@ -22,28 +24,18 @@
 .app-header__nav {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: vars.$space-sm;
   margin-right: auto;
 }
 
 %app-header-control {
-  padding: 0.25rem 0.75rem;
+  padding: vars.$space-xs vars.$space-md;
   font: inherit;
   color: inherit;
   border: 1px solid transparent;
-  border-radius: 4px;
-  transition:
-    background-color 150ms ease,
-    border-color 150ms ease;
-
-  &:focus-visible {
-    outline: 2px solid var(--app-header-fg);
-    outline-offset: 2px;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    transition: none;
-  }
+  border-radius: vars.$radius-sm;
+  @include mixins.transition(background-color border-color, vars.$duration-fast);
+  @include mixins.focus-ring(var(--app-header-fg));
 }
 
 .app-header__link {
@@ -89,11 +81,8 @@
 
 .app-header__username {
   // A long name is truncated with "…" instead of stretching the header; the full name is in `title`.
-  min-width: 0;
-  overflow: hidden;
-  font-weight: 600;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  @include mixins.truncate;
+  font-weight: vars.$font-weight-semibold;
 }
 
 .app-header__logout {

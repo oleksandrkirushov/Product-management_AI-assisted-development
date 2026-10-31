@@ -6,8 +6,12 @@
 //
 // How to use it in components: take colors from the system tokens `var(--mat-sys-*)`
 // (https://material.angular.dev/guide/system-variables) instead of duplicating hex values.
+//
+// Emits no CSS by itself: `src/styles.scss` applies the `theme` mixin to `html`.
+
 @use 'sass:map';
 @use '@angular/material' as mat;
+@use 'variables' as vars;
 
 // Base gray scale. Keys are the tones an M3 palette requires.
 $_gray: (
@@ -71,7 +75,7 @@ $_grayscale-palette: map.merge(
   )
 );
 
-$_font-family: (system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif);
+$_font-family: vars.$font-family;
 
 @mixin theme {
   @include mat.theme(

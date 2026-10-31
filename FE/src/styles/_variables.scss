@@ -1,0 +1,94 @@
+// Design tokens (compile-time SCSS variables). The single source of colours, spacing, sizes and timings.
+// Components: `@use 'variables' as vars;` and write `vars.$space-lg`, not `1rem`.
+// Material-based screens (header, /admin) take colours from `var(--mat-sys-*)` instead of the colours below.
+
+// Colours
+$color-text: #1f2328;
+$color-text-muted: #555;
+$color-text-disabled: #999;
+
+$color-bg: #fff;
+$color-bg-page-muted: #f5f5f5;
+$color-bg-invalid: #fff5f5;
+
+$color-border: #e0e0e0;
+$color-border-input: #ccc;
+
+$color-accent: #0066cc;
+$color-accent-hover: #0052a3;
+$color-accent-active: #003d7a;
+
+$color-error: #b42318;
+
+$color-inverse-bg: #000;
+$color-inverse-text: #fff;
+$color-inverse-hover-bg: rgba($color-inverse-text, 0.1);
+
+$color-danger-bg: #f8d7da;
+$color-danger-border: #f5c6cb;
+$color-danger-text: #721c24;
+
+$color-success-bg: #d4edda;
+$color-success-border: #c3e6cb;
+$color-success-text: #155724;
+
+$color-shadow: rgba(#000, 0.1);
+
+// Spacing scale
+$space-2xs: 0.125rem;
+$space-xs: 0.25rem;
+$space-sm: 0.5rem;
+$space-md: 0.75rem;
+$space-lg: 1rem;
+$space-xl: 1.5rem;
+$space-2xl: 2rem;
+
+// Radius
+$radius-sm: 4px;
+$radius-md: 8px;
+
+// Typography
+$font-family: (system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif);
+
+$font-size-xs: 0.875rem;
+$font-size-sm: 0.9rem;
+$font-size-md: 0.95rem;
+$font-size-base: 1rem;
+$font-size-lg: 1.5rem;
+$font-size-xl: 1.75rem;
+
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+
+$icon-size: 24px;
+
+// Shadows
+$shadow-card: 0 2px 8px $color-shadow;
+$focus-shadow-spread: 3px;
+$shadow-focus: 0 0 0 $focus-shadow-spread rgba($color-accent, 0.1);
+$shadow-focus-invalid: 0 0 0 $focus-shadow-spread rgba($color-error, 0.1);
+$shadow-focus-strong: 0 0 0 $focus-shadow-spread rgba($color-accent, 0.3);
+
+// Focus ring (keyboard focus outline)
+$focus-ring-width: 2px;
+$focus-ring-offset: 2px;
+
+// Opacity
+$opacity-hover: 0.85;
+$opacity-disabled: 0.6;
+$opacity-disabled-inverse: 0.5;
+
+// Transitions
+$duration-fast: 150ms;
+$duration-base: 0.2s;
+
+// Breakpoints (used with `mixins.media-down`)
+$breakpoint-sm: 600px;
+
+// Z-index
+$z-index-banner: 1000;
+
+// Widths
+$auth-card-max-width: 400px;
+$form-max-width: 480px;
+$sidenav-width: 232px;

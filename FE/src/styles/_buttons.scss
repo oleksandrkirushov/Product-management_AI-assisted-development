@@ -1,0 +1,38 @@
+// Primary submit button of the auth forms.
+@use 'variables' as vars;
+@use 'mixins';
+
+.submit-button {
+  padding: vars.$space-md vars.$space-lg;
+  font-size: vars.$font-size-base;
+  font-weight: vars.$font-weight-semibold;
+  color: vars.$color-inverse-text;
+  background-color: vars.$color-accent;
+  border: none;
+  border-radius: vars.$radius-sm;
+  cursor: pointer;
+  @include mixins.transition(background-color opacity);
+
+  &:hover:not(:disabled) {
+    background-color: vars.$color-accent-hover;
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: vars.$shadow-focus-strong;
+  }
+
+  &:active:not(:disabled) {
+    background-color: vars.$color-accent-active;
+  }
+
+  &:disabled {
+    opacity: vars.$opacity-disabled;
+    cursor: not-allowed;
+  }
+}
+
+// Label inside a form button (switches between idle and busy text).
+.button-text {
+  display: inline-block;
+}

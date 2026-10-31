@@ -1,0 +1,39 @@
+@use 'variables' as vars;
+
+.error-banner {
+  padding: vars.$space-lg;
+  color: vars.$color-danger-text;
+  background-color: vars.$color-danger-bg;
+  border: 1px solid vars.$color-danger-border;
+  border-radius: vars.$radius-sm;
+
+  &--fixed {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: vars.$z-index-banner;
+    text-align: center;
+    border-width: 0 0 1px;
+    border-radius: 0;
+  }
+
+  &__link {
+    margin-left: vars.$space-sm;
+    color: vars.$color-danger-text;
+    font-weight: vars.$font-weight-semibold;
+    text-decoration: underline;
+  }
+}
+
+.success-banner {
+  width: 100%;
+  max-width: vars.$auth-card-max-width;
+  margin-bottom: vars.$space-lg;
+  padding: vars.$space-lg;
+  color: vars.$color-success-text;
+  text-align: center;
+  background-color: vars.$color-success-bg;
+  border: 1px solid vars.$color-success-border;
+  border-radius: vars.$radius-sm;
+}

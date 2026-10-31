@@ -5,7 +5,7 @@ import { MatListItem, MatListItemIcon, MatListItemTitle, MatNavList } from '@ang
 import { MatSidenav, MatSidenavContainer, MatSidenavContent } from '@angular/material/sidenav';
 
 /**
- * Icons available in the self-hosted Material Symbols subset (`public/fonts/`, list in `src/styles.scss`).
+ * Icons available in the self-hosted Material Symbols subset (`public/fonts/`, list in `src/styles/_icons.scss`).
  * Add a new icon here only after updating the font, otherwise text will be shown instead of it.
  */
 type AdminNavIcon = 'block' | 'check_circle' | 'close' | 'delete' | 'group' | 'more_vert';

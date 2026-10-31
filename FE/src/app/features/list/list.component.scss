@@ -1,78 +1,37 @@
-// Colors
-$color-inverse-text: #ffffff;
-$color-inverse-bg: #000000;
-$color-border: #d0d7de;
-$color-error: #b42318;
-$color-focus: #0969da;
-
-// Spacing
-$space-sm: 0.75rem;
-$space-md: 1rem;
-$space-lg: 1.5rem;
-
-$radius: 4px;
-
-@mixin inverse-colors {
-  color: $color-inverse-text;
-  background: $color-inverse-bg;
-}
-
-@mixin reset-list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
+@use 'variables' as vars;
+@use 'mixins';
 
 :host {
   display: block;
 }
 
 .page-header {
-  @include inverse-colors;
-  display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: $space-md $space-lg;
-
-  &__title {
-    margin: 0;
-    font-size: 1.5rem;
-  }
 }
 
 .add-button {
-  color: $color-inverse-text;
-  background: transparent;
-  padding: 0.5rem $space-md;
+  @include mixins.inverse-ghost-button;
+  padding: vars.$space-sm vars.$space-lg;
   font: inherit;
   text-decoration: none;
-  border: 1px solid $color-inverse-text;
-  border-radius: $radius;
-  cursor: pointer;
+  border-color: vars.$color-inverse-text;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: vars.$color-inverse-hover-bg;
   }
 
-  &:focus-visible {
-    outline: 3px solid $color-focus;
-    outline-offset: 2px;
-  }
-}
-
-.page-body {
-  padding: $space-lg;
+  @include mixins.focus-ring;
 }
 
 .product-list {
-  @include reset-list;
+  @include mixins.reset-list;
 
   &__item {
     display: flex;
     justify-content: space-between;
-    gap: $space-md;
-    padding: $space-sm 0;
-    border-bottom: 1px solid $color-border;
+    gap: vars.$space-lg;
+    padding: vars.$space-md 0;
+    border-bottom: 1px solid vars.$color-border;
   }
 
   &__price {
@@ -81,25 +40,9 @@ $radius: 4px;
   }
 }
 
-.state {
-  margin: 0;
-
-  &--error {
-    color: $color-error;
-  }
-}
-
 .retry-button {
-  @include inverse-colors;
-  margin-top: $space-sm;
-  padding: 0.5rem $space-md;
-  font: inherit;
-  border: 1px solid $color-inverse-bg;
-  border-radius: $radius;
-  cursor: pointer;
-
-  &:focus-visible {
-    outline: 3px solid $color-focus;
-    outline-offset: 2px;
-  }
+  @include mixins.inverse-solid-button;
+  margin-top: vars.$space-md;
+  padding: vars.$space-sm vars.$space-lg;
+  @include mixins.focus-ring;
 }

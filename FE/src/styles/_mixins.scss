@@ -1,0 +1,90 @@
+// Reusable style shapes for cases where the class/context differs between components.
+// Components: `@use 'mixins';` and `@include mixins.focus-ring;`.
+@use 'sass:list';
+@use 'variables' as vars;
+
+// Keyboard focus outline. Use the header's own colour on Material surfaces, $color-accent elsewhere.
+@mixin focus-ring($color: vars.$color-accent) {
+  &:focus-visible {
+    outline: vars.$focus-ring-width solid $color;
+    outline-offset: vars.$focus-ring-offset;
+  }
+}
+
+// Transition for the given properties (space-separated list); disabled for users who prefer reduced motion.
+@mixin transition($properties, $duration: vars.$duration-base) {
+  $value: ();
+
+  @each $property in $properties {
+    $value: list.append($value, $property $duration ease, $separator: comma);
+  }
+
+  transition: $value;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+@mixin reset-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@mixin inverse-colors {
+  color: vars.$color-inverse-text;
+  background: vars.$color-inverse-bg;
+}
+
+// White elevated surface (auth card, info panel).
+@mixin card {
+  background-color: vars.$color-bg;
+  border-radius: vars.$radius-md;
+  box-shadow: vars.$shadow-card;
+}
+
+// Link without underline that gets underlined on hover.
+@mixin text-link($color: vars.$color-accent, $weight: null) {
+  color: $color;
+  font-weight: $weight;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// Single line truncated with "…".
+@mixin truncate {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@mixin media-down($breakpoint) {
+  @media (max-width: $breakpoint) {
+    @content;
+  }
+}
+
+// Shared base of buttons on the black page header (`.add-button`, `.back-button`).
+// Add `@include mixins.focus-ring;` after your own declarations.
+@mixin inverse-ghost-button {
+  color: vars.$color-inverse-text;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: vars.$radius-sm;
+  cursor: pointer;
+}
+
+// Black filled button on a white background (`.retry-button`, `.save-button`).
+// Add `@include mixins.focus-ring;` after your own declarations.
+@mixin inverse-solid-button {
+  @include inverse-colors;
+  font: inherit;
+  border: 1px solid vars.$color-inverse-bg;
+  border-radius: vars.$radius-sm;
+  cursor: pointer;
+}

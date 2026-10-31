@@ -1,0 +1,64 @@
+// Form fields shared by the auth pages and the product form.
+@use 'variables' as vars;
+@use 'mixins';
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: vars.$space-sm;
+}
+
+.form-label {
+  margin-bottom: vars.$space-xs;
+  font-size: vars.$font-size-md;
+  font-weight: vars.$font-weight-medium;
+  color: vars.$color-text;
+}
+
+.required-indicator {
+  margin-left: vars.$space-2xs;
+  color: vars.$color-error;
+}
+
+.form-input {
+  padding: vars.$space-md;
+  font-size: vars.$font-size-base;
+  font-family: inherit;
+  border: 1px solid vars.$color-border-input;
+  border-radius: vars.$radius-sm;
+  @include mixins.transition(border-color box-shadow);
+
+  &:focus {
+    outline: none;
+    border-color: vars.$color-accent;
+    box-shadow: vars.$shadow-focus;
+  }
+
+  &[aria-invalid='true'] {
+    border-color: vars.$color-error;
+    background-color: vars.$color-bg-invalid;
+
+    &:focus {
+      box-shadow: vars.$shadow-focus-invalid;
+    }
+  }
+
+  &:disabled {
+    color: vars.$color-text-disabled;
+    background-color: vars.$color-bg-page-muted;
+    cursor: not-allowed;
+  }
+}
+
+.form-hint {
+  margin: 0;
+  font-size: vars.$font-size-md;
+  color: vars.$color-text-muted;
+}
+
+.error-message {
+  margin: 0;
+  font-size: vars.$font-size-xs;
+  font-weight: vars.$font-weight-medium;
+  color: vars.$color-error;
+}

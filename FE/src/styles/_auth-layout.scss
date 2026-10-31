@@ -1,0 +1,80 @@
+@use 'variables' as vars;
+@use 'mixins';
+
+.auth-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: vars.$color-bg-page-muted;
+
+  &__header {
+    padding: vars.$space-2xl vars.$space-lg;
+    text-align: center;
+    background-color: vars.$color-bg;
+    border-bottom: 1px solid vars.$color-border;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: vars.$font-size-xl;
+    font-weight: vars.$font-weight-semibold;
+    color: vars.$color-text;
+
+    @include mixins.media-down(vars.$breakpoint-sm) {
+      font-size: vars.$font-size-lg;
+    }
+  }
+
+  &__section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: vars.$space-2xl vars.$space-lg;
+  }
+
+  &__footer-link {
+    margin-top: vars.$space-xl;
+    font-size: vars.$font-size-sm;
+    color: vars.$color-text;
+
+    a {
+      @include mixins.text-link($weight: vars.$font-weight-semibold);
+    }
+  }
+}
+
+.auth-card,
+.info-panel {
+  @include mixins.card;
+  width: 100%;
+  max-width: vars.$auth-card-max-width;
+  padding: vars.$space-2xl;
+}
+
+.auth-card {
+  display: flex;
+  flex-direction: column;
+  gap: vars.$space-xl;
+
+  @include mixins.media-down(vars.$breakpoint-sm) {
+    max-width: 100%;
+  }
+}
+
+.info-panel {
+  text-align: center;
+
+  &__text {
+    margin: 0;
+    font-size: vars.$font-size-base;
+    color: vars.$color-text;
+  }
+
+  &__link {
+    display: inline-block;
+    margin-top: vars.$space-lg;
+    @include mixins.text-link($weight: vars.$font-weight-semibold);
+  }
+}

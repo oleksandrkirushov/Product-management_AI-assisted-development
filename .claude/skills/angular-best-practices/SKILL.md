@@ -61,6 +61,13 @@ description: Modern Angular (v20+) best practices — standalone components, sig
 - Code must pass AXE checks and meet WCAG AA.
 - Zoneless + OnPush + signals; lazy routes; `@defer`.
 
+### Styles
+- Global partials live in `src/styles/` (see the "Styles" section of `FE/CLAUDE.md`). Reuse global classes
+  (`.form-input`, `.submit-button`, `.error-banner`, `.auth-page`, `.page-header` …) and mixins instead of copying blocks.
+  A block goes global when it is reused in ≥2 components or is a generic form/alert/layout/utility primitive.
+- Component `.scss`: `@use 'variables' as vars;` / `@use 'mixins';`; no hex/rgba and no raw sizes, durations or weights —
+  only `vars.*` tokens (or `var(--mat-sys-*)` on Material screens). A missing value becomes a new token in `_variables.scss`.
+
 ### Project structure → [references/project-structure.md](references/project-structure.md)
 - Organize by feature, not by file type.
 - One component/service per file; `kebab-case` file names.

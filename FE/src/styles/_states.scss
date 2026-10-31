@@ -1,0 +1,9 @@
+@use 'variables' as vars;
+
+.state {
+  margin: 0;
+
+  &--error {
+    color: vars.$color-error;
+  }
+}

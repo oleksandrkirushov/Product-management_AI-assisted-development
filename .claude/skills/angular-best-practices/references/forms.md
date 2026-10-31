@@ -58,7 +58,7 @@ Mark a required field with an asterisk next to the label (visible cue) + hidden 
 <input id="email" formControlName="email" aria-required="true" />
 ```
 
-`.visually-hidden` is a global class (`src/styles.scss`), don't duplicate it in the component.
+`.visually-hidden` is a global class (`src/styles/_utilities.scss`), don't duplicate it in the component.
 
 ## Full-page form with a footer pinned to the bottom
 

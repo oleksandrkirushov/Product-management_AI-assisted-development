@@ -1,0 +1,25 @@
+@use 'variables' as vars;
+@use 'mixins';
+
+.page-header {
+  @include mixins.inverse-colors;
+  display: flex;
+  align-items: center;
+  padding: vars.$space-lg vars.$space-xl;
+
+  &__title {
+    margin: 0;
+    font-size: vars.$font-size-lg;
+  }
+}
+
+.page-body {
+  padding: vars.$space-xl;
+}
+
+.page-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: vars.$space-xl;
+  border-top: 1px solid vars.$color-border;
+}

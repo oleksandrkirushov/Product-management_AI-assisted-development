@@ -1,12 +1,12 @@
-<div class="login-container">
-  <header class="login-header">
-    <h1 class="login-header__title">Login</h1>
+<div class="auth-page">
+  <header class="auth-page__header">
+    <h1 class="auth-page__title">Login</h1>
   </header>
 
-  <section class="login-form-section">
+  <section class="auth-page__section">
     @if (errorMessage()) {
       <div
-        class="error-banner"
+        class="error-banner error-banner--fixed"
         role="alert"
         aria-live="polite"
         aria-atomic="true"
@@ -24,7 +24,7 @@
     <form
       [formGroup]="form"
       (submit)="submit(); $event.preventDefault()"
-      class="login-form"
+      class="auth-card"
       aria-label="Login form"
     >
       <div class="form-group">
@@ -94,7 +94,7 @@
       </button>
     </form>
 
-    <p class="login-register-link">
+    <p class="auth-page__footer-link">
       Don't have an account? <a routerLink="/register">Sign up</a>
     </p>
   </section>

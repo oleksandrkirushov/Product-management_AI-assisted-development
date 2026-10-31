@@ -1,3 +1,5 @@
+@use 'variables' as vars;
+
 :host {
   display: flex;
   flex-direction: column;
@@ -5,7 +7,7 @@
 }
 
 .admin-layout {
-  --mat-sidenav-container-width: 232px;
+  --mat-sidenav-container-width: #{vars.$sidenav-width};
   --mat-sidenav-container-background-color: var(--mat-sys-surface-container-low);
   --mat-sidenav-container-divider-color: var(--mat-sys-outline-variant);
   --mat-sidenav-container-shape: 0;
@@ -16,5 +18,5 @@
 }
 
 .admin-layout__content {
-  padding: 1rem 1.5rem;
+  padding: vars.$space-lg vars.$space-xl;
 }
