@@ -1,6 +1,9 @@
 # General rules for the whole repository.
 # Part-specific rules live in FE/.gitignore (and BE/.gitignore).
 
+# Local implementation plans and research reports (not pushed to the remote)
+/plans/
+
 # System files
 .DS_Store
 Thumbs.db
