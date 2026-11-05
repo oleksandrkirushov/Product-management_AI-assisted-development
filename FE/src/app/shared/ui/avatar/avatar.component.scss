@@ -1,0 +1,41 @@
+@use 'variables' as vars;
+
+// Colours can be overridden by the parent via `--app-avatar-bg` / `--app-avatar-fg`
+// (e.g. the header inverts them so the circle stands out on its dark background).
+:host {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-weight: vars.$font-weight-semibold;
+  line-height: 1;
+  color: var(--app-avatar-fg, var(--mat-sys-on-secondary-container));
+  background: var(--app-avatar-bg, var(--mat-sys-secondary-container));
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  user-select: none;
+
+  // Windows High Contrast drops backgrounds: keep the circle visible with a system-coloured border.
+  @media (forced-colors: active) {
+    border-color: CanvasText;
+  }
+}
+
+:host(.avatar--sm) {
+  width: vars.$avatar-size-sm;
+  height: vars.$avatar-size-sm;
+  font-size: vars.$font-size-xs;
+}
+
+:host(.avatar--md) {
+  width: vars.$avatar-size-md;
+  height: vars.$avatar-size-md;
+  font-size: vars.$font-size-base;
+}
+
+.avatar__photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

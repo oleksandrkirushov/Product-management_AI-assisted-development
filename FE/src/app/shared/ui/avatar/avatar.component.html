@@ -1,0 +1,5 @@
+@if (showPhoto()) {
+  <img class="avatar__photo" [src]="photoUrl()" alt="" (error)="onImageError()" />
+} @else {
+  <span class="avatar__initials">{{ initials() }}</span>
+}

@@ -19,7 +19,6 @@
         Admin
       </a>
     </nav>
-    <span class="app-header__username" [title]="user.username">{{ user.username }}</span>
-    <button type="button" class="app-header__logout" (click)="logout()">Logout</button>
+    <app-profile-menu class="app-header__profile" [user]="user" />
   </header>
 }

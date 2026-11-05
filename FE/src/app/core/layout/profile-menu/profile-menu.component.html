@@ -1,0 +1,17 @@
+<button
+  type="button"
+  class="profile-menu__trigger"
+  [attr.popovertarget]="panelId"
+  [attr.aria-label]="triggerLabel()"
+  [title]="displayName()"
+>
+  <app-avatar size="sm" [firstName]="user().firstName" [lastName]="user().lastName" />
+</button>
+
+<div popover class="profile-menu__panel" [id]="panelId" role="dialog" aria-label="Account">
+  <p class="profile-menu__name" [title]="displayName()">{{ displayName() }}</p>
+  @if (roles()) {
+    <p class="profile-menu__roles">{{ roles() }}</p>
+  }
+  <button type="button" class="profile-menu__logout" (click)="logout()">Logout</button>
+</div>

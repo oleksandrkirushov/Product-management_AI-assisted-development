@@ -23,12 +23,8 @@ describe('HeaderComponent', () => {
   let router: Router;
   let currentUser: ReturnType<typeof signal<User | null>>;
 
-  function username(): string | null {
-    return fixture.nativeElement.querySelector('.app-header__username')?.textContent ?? null;
-  }
-
-  function logoutButton(): HTMLButtonElement | null {
-    return fixture.nativeElement.querySelector('.app-header__logout');
+  function profileMenu(): HTMLElement | null {
+    return fixture.nativeElement.querySelector('app-profile-menu');
   }
 
   function adminLink(): HTMLAnchorElement | null {
@@ -48,7 +44,7 @@ describe('HeaderComponent', () => {
 
   beforeEach(async () => {
     currentUser = signal<User | null>(null);
-    authService = jasmine.createSpyObj<AuthService>('AuthService', ['logout', 'hasPermission'], {
+    authService = jasmine.createSpyObj<AuthService>('AuthService', ['hasPermission'], {
       currentUser: currentUser.asReadonly(),
     });
     authService.hasPermission.and.returnValue(false);
@@ -71,7 +67,6 @@ describe('HeaderComponent', () => {
     }).compileComponents();
 
     router = TestBed.inject(Router);
-    spyOn(router, 'navigate').and.resolveTo(true);
 
     fixture = TestBed.createComponent(HeaderComponent);
     await fixture.whenStable();
@@ -81,33 +76,41 @@ describe('HeaderComponent', () => {
     expect(fixture.nativeElement.querySelector('.app-header')).toBeNull();
   });
 
-  it('should show the username when a user is logged in', async () => {
+  it('should render the profile menu when a user is logged in', async () => {
     currentUser.set(user);
     await fixture.whenStable();
 
-    expect(username()).toContain('jdoe');
+    expect(profileMenu()).not.toBeNull();
   });
 
-  it('should expose the full username in the title when it may be truncated', async () => {
+  it('should pass the current user to the profile menu', async () => {
     currentUser.set(user);
     await fixture.whenStable();
 
-    const element = fixture.nativeElement.querySelector('.app-header__username');
-    expect(element?.getAttribute('title')).toBe('jdoe');
+    const trigger = profileMenu()?.querySelector('button[popovertarget]');
+    expect(trigger?.getAttribute('aria-label')).toBe('Account: John Doe');
   });
 
-  it('should log out and navigate to login when the logout button is clicked', async () => {
+  it('should not render a standalone username or Logout button outside the profile menu', async () => {
     currentUser.set(user);
     await fixture.whenStable();
 
-    const button = logoutButton();
-    if (!button) {
-      throw new Error('Logout button not found');
-    }
-    button.click();
+    const header: HTMLElement = fixture.nativeElement;
+    const buttonsOutsideMenu = Array.from(header.querySelectorAll('button')).filter(
+      (button) => !button.closest('app-profile-menu'),
+    );
+    expect(header.querySelector('.app-header__username')).toBeNull();
+    expect(buttonsOutsideMenu).toEqual([]);
+  });
 
-    expect(authService.logout).toHaveBeenCalled();
-    expect(router.navigate).toHaveBeenCalledWith(['/login']);
+  it('should remove the profile menu when the user logs out', async () => {
+    currentUser.set(user);
+    await fixture.whenStable();
+
+    currentUser.set(null);
+    await fixture.whenStable();
+
+    expect(profileMenu()).toBeNull();
   });
 
   it('should show the Admin link when the user has the users:read permission', async () => {
@@ -165,7 +168,7 @@ describe('HeaderComponent', () => {
     expect(adminLink()).toBeNull();
     expect(productsLink()).not.toBeNull();
     expect(fixture.nativeElement.querySelector('nav')).not.toBeNull();
-    expect(username()).toContain('jdoe');
+    expect(profileMenu()).not.toBeNull();
   });
 
   it('should label the navigation as Primary', async () => {

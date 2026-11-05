@@ -1,6 +1,11 @@
 @use 'variables' as vars;
 @use 'mixins';
 
+:host {
+  position: sticky;
+  top: 0;
+}
+
 .app-header {
   --app-header-bg: var(--mat-sys-primary);
   --app-header-fg: var(--mat-sys-on-primary);
@@ -47,10 +52,6 @@
     border-color: var(--app-header-hover-border);
   }
 
-  // The active link differs not only by color: solid white border, background and underline.
-  // The modifier is written as a full class (`&.app-header__link--active`) rather than `&--active`, and `:hover`
-  // comes before it: Angular treats `--active:` in a selector as a CSS custom property declaration
-  // and injects a namespace (`--%NS%active:hover`), which makes the rule stop working.
   &.app-header__link--active {
     border-color: var(--app-header-fg);
     background-color: var(--app-header-highlight);
@@ -63,8 +64,6 @@
     background-color: var(--app-header-highlight-strong);
   }
 
-  // Windows High Contrast: the transparent border becomes visible and the hover background is forcibly reset.
-  // So states are conveyed only by system border colors; the active one is also underlined.
   @media (forced-colors: active) {
     border-color: Canvas;
 
@@ -79,20 +78,7 @@
   }
 }
 
-.app-header__username {
-  // A long name is truncated with "…" instead of stretching the header; the full name is in `title`.
-  @include mixins.truncate;
-  font-weight: vars.$font-weight-semibold;
-}
-
-.app-header__logout {
-  @extend %app-header-control;
-
-  cursor: pointer;
-  background-color: transparent;
-  border-color: var(--app-header-fg);
-
-  &:hover {
-    background-color: var(--app-header-highlight);
-  }
+.app-header__profile {
+  --app-avatar-bg: var(--app-header-fg);
+  --app-avatar-fg: var(--app-header-bg);
 }

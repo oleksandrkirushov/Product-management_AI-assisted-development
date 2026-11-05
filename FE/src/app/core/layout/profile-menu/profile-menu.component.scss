@@ -1,0 +1,101 @@
+@use 'variables' as vars;
+@use 'mixins';
+
+:host {
+  display: inline-flex;
+  anchor-scope: --profile-menu-trigger;
+}
+
+.profile-menu__trigger {
+  display: inline-flex;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  anchor-name: --profile-menu-trigger;
+  @include mixins.transition(opacity, vars.$duration-fast);
+  @include mixins.focus-ring(currentColor);
+
+  &:hover {
+    opacity: vars.$opacity-hover;
+  }
+}
+
+.profile-menu__panel {
+  // Reset the UA `[popover]` centring (`inset: 0; margin: auto`) so anchor positioning can take over.
+  inset: auto;
+  margin: 0;
+  margin-block-start: vars.$space-xs;
+  position-anchor: --profile-menu-trigger;
+  position-area: block-end span-inline-start;
+  position-try-fallbacks: flip-inline;
+
+  box-sizing: border-box;
+  min-width: vars.$popover-panel-min-width;
+  max-width: vars.$popover-panel-max-width;
+  padding: vars.$space-lg;
+  color: var(--mat-sys-on-surface);
+  background: var(--mat-sys-surface-container);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: vars.$radius-md;
+  box-shadow: var(--mat-sys-level2);
+
+  opacity: 1;
+  @include mixins.transition(opacity, vars.$duration-fast);
+
+  &:popover-open {
+    @starting-style {
+      opacity: 0;
+    }
+  }
+
+  // Without anchor positioning: pin the panel to the top-right corner. `top` approximates a one-row
+  // header (padding + avatar + border), so it is off when the header wraps or the page is scrolled.
+  @supports not (anchor-name: --x) {
+    top: calc(2 * vars.$space-lg + vars.$avatar-size-sm + 1px);
+    right: vars.$space-lg;
+    margin-block-start: 0;
+  }
+
+  @media (forced-colors: active) {
+    border-color: CanvasText;
+  }
+}
+
+.profile-menu__name {
+  margin: 0;
+  font-weight: vars.$font-weight-semibold;
+  @include mixins.truncate;
+}
+
+.profile-menu__roles {
+  margin: vars.$space-2xs 0 0;
+  font-size: vars.$font-size-xs;
+  color: var(--mat-sys-on-surface-variant);
+  overflow-wrap: anywhere;
+}
+
+.profile-menu__logout {
+  width: 100%;
+  margin-top: vars.$space-md;
+  padding: vars.$space-xs vars.$space-md;
+  font: inherit;
+  color: var(--mat-sys-on-surface);
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--mat-sys-outline);
+  border-radius: vars.$radius-sm;
+  @include mixins.transition(background-color, vars.$duration-fast);
+  @include mixins.focus-ring(var(--mat-sys-on-surface));
+
+  &:hover {
+    background-color: color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent);
+  }
+
+  @media (forced-colors: active) {
+    border-color: ButtonText;
+  }
+}
