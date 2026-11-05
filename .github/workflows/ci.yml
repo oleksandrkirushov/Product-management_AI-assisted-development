@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: FE
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: FE/.nvmrc
+          cache: npm
+          cache-dependency-path: FE/package-lock.json
+      - run: npm ci
+      - run: npm run build
+      - run: npm run test:coverage
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: fe-coverage
+          path: FE/coverage/products-audit
+          if-no-files-found: ignore
+
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: BE
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet restore ProductCatalog.sln
+      - run: dotnet build ProductCatalog.sln --no-restore -c Release
+      - run: dotnet test ProductCatalog.sln --no-build -c Release
