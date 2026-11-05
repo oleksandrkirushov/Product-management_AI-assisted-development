@@ -1,5 +1,7 @@
 # Products Audit
 
+[![CI](https://github.com/oleksandrkirushov/Product-management_AI-assisted-development/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/oleksandrkirushov/Product-management_AI-assisted-development/actions/workflows/ci.yml)
+
 A learning full-stack application for managing a product catalog:
 
 | Part | Stack | Folder |
@@ -156,6 +158,9 @@ cd FE && npm run test:coverage   # with coverage report and thresholds
 # Backend (needs the .NET 10 SDK)
 cd BE && dotnet test ProductCatalog.sln
 ```
+
+[GitHub Actions](.github/workflows/ci.yml) builds both parts and runs these tests, including the frontend coverage
+thresholds, on every pull request to `main` and every push to `main`.
 
 ## Ports
 
